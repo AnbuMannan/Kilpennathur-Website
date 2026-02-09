@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { DeleteSchemeButton } from "./DeleteSchemeButton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
+import { SchemesListClient } from "./SchemesListClient";
 
 type SearchParams = { search?: string | string[] };
 
@@ -25,17 +24,12 @@ export default async function AdminSchemesPage({
       ? {
           OR: [
             { title: { contains: search, mode: "insensitive" as const } },
-            {
-              titleTamil: { contains: search, mode: "insensitive" as const },
-            },
+            { titleTamil: { contains: search, mode: "insensitive" as const } },
           ],
         }
       : {},
     orderBy: { createdAt: "desc" },
   });
-
-  const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(date);
 
   return (
     <div className="max-w-6xl">
@@ -80,103 +74,20 @@ export default async function AdminSchemesPage({
       {schemes.length === 0 ? (
         <p className="text-muted-foreground py-8">
           No schemes found.
-          {search
-            ? " Try a different search."
-            : " Create your first scheme."}
+          {search ? " Try a different search." : " Create your first scheme."}
         </p>
       ) : (
-        <div className="border border-border rounded-md overflow-hidden">
-          <table
-            className="w-full text-left text-sm"
-            style={{ tableLayout: "fixed" }}
-          >
-            <colgroup>
-              <col style={{ width: "30%" }} />
-              <col style={{ width: "15%" }} />
-              <col style={{ width: "15%" }} />
-              <col style={{ width: "10%" }} />
-              <col style={{ width: "15%" }} />
-              <col style={{ width: "15%" }} />
-            </colgroup>
-            <thead className="bg-muted">
-              <tr>
-                <th className="px-3 py-3 font-semibold whitespace-nowrap">
-                  Title
-                </th>
-                <th className="px-3 py-3 font-semibold whitespace-nowrap">
-                  Sponsor
-                </th>
-                <th className="px-3 py-3 font-semibold whitespace-nowrap">
-                  Beneficiary
-                </th>
-                <th className="px-3 py-3 font-semibold whitespace-nowrap">
-                  Status
-                </th>
-                <th className="px-3 py-3 font-semibold whitespace-nowrap">
-                  Created
-                </th>
-                <th className="px-3 py-3 font-semibold whitespace-nowrap">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {schemes.map((s) => (
-                <tr
-                  key={s.id}
-                  className="border-t border-border hover:bg-muted/50"
-                >
-                  <td className="px-3 py-3 align-top">
-                    <span className="block truncate font-medium" title={s.title}>
-                      {s.title}
-                    </span>
-                    {s.titleTamil && (
-                      <span
-                        className="block truncate text-xs text-muted-foreground"
-                        title={s.titleTamil}
-                      >
-                        {s.titleTamil}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-3 align-top">
-                    <Badge variant="outline" className="text-xs">
-                      {s.sponsor}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-3 align-top">
-                    <Badge variant="secondary" className="text-xs">
-                      {s.beneficiaryType}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-3 align-top">
-                    <Badge
-                      variant={
-                        s.status === "published" ? "default" : "secondary"
-                      }
-                      className="text-xs"
-                    >
-                      {s.status}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-3 text-muted-foreground whitespace-nowrap align-top">
-                    {formatDate(s.createdAt)}
-                  </td>
-                  <td className="px-3 py-3 whitespace-nowrap align-top">
-                    <Link
-                      href={`/admin/schemes/${s.id}/edit`}
-                      className="text-primary hover:underline"
-                    >
-                      Edit
-                    </Link>
-                    <span className="text-muted-foreground">|</span>
-                    <DeleteSchemeButton id={s.id} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <SchemesListClient
+          items={schemes.map((s) => ({
+            id: s.id,
+            title: s.title,
+            titleTamil: s.titleTamil,
+            sponsor: s.sponsor,
+            beneficiaryType: s.beneficiaryType,
+            status: s.status,
+            createdAt: s.createdAt.toISOString(),
+          }))}
+        />
       )}
     </div>
   );

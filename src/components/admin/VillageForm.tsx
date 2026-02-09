@@ -9,6 +9,8 @@ import type { CreateVillageState, UpdateVillageState } from "@/app/admin/village
 import { generateSlug } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AdminFormLayout } from "./AdminFormLayout";
+import { FormPreviewCard } from "./FormPreviewCard";
 
 const villageSchema = z.object({
   name: z.string().min(1, "Name (English) is required").trim(),
@@ -49,6 +51,10 @@ export function VillageForm(props: VillageFormProps) {
 
   const [slug, setSlug] = useState(village?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(false);
+  const [previewName, setPreviewName] = useState(village?.name ?? "");
+  const [previewNameTamil, setPreviewNameTamil] = useState(village?.nameTamil ?? "");
+  const [previewPopulation, setPreviewPopulation] = useState(village?.population?.toString() ?? "");
+  const [previewPresident, setPreviewPresident] = useState(village?.presidentName ?? "");
 
   useEffect(() => {
     if (state?.error) {
@@ -58,6 +64,7 @@ export function VillageForm(props: VillageFormProps) {
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
+    setPreviewName(name);
     if (!slugTouched) {
       setSlug(generateSlug(name));
     }
@@ -94,6 +101,21 @@ export function VillageForm(props: VillageFormProps) {
   };
 
   return (
+    <AdminFormLayout
+      preview={
+        <FormPreviewCard
+          title={previewName}
+          subtitle={previewNameTamil}
+          statusLabel="Village"
+          statusColor="bg-teal-100 text-teal-700"
+          fields={[
+            { label: "Population", value: previewPopulation },
+            { label: "President", value: previewPresident },
+            { label: "Slug", value: slug },
+          ]}
+        />
+      }
+    >
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-4">
       {isEdit && village && (
         <input type="hidden" name="id" value={village.id} />
@@ -135,6 +157,7 @@ export function VillageForm(props: VillageFormProps) {
           type="text"
           required
           defaultValue={village?.nameTamil ?? ""}
+          onChange={(e) => setPreviewNameTamil(e.target.value)}
           className="w-full"
         />
         {state?.fieldErrors?.nameTamil && (
@@ -199,6 +222,7 @@ export function VillageForm(props: VillageFormProps) {
               type="text"
               defaultValue={village?.presidentName ?? ""}
               placeholder="e.g. Ramesh Kumar"
+              onChange={(e) => setPreviewPresident(e.target.value)}
               className="w-full"
             />
           </div>
@@ -253,6 +277,7 @@ export function VillageForm(props: VillageFormProps) {
               min={0}
               defaultValue={village?.population ?? ""}
               placeholder="e.g. 5000"
+              onChange={(e) => setPreviewPopulation(e.target.value)}
               className="w-full"
             />
           </div>
@@ -296,5 +321,6 @@ export function VillageForm(props: VillageFormProps) {
         </Button>
       </div>
     </form>
+    </AdminFormLayout>
   );
 }

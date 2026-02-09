@@ -7,7 +7,27 @@ export async function GET() {
     const categories = await prisma.category.findMany({
       orderBy: [{ type: "asc" }, { name: "asc" }],
     });
-    return NextResponse.json(categories);
+
+    // Count items per category across relevant models
+    const [newsCounts, businessCounts] = await Promise.all([
+      prisma.news.groupBy({ by: ["category"], _count: { id: true } }),
+      prisma.business.groupBy({ by: ["category"], _count: { id: true } }),
+    ]);
+
+    const countMap: Record<string, number> = {};
+    for (const g of newsCounts) {
+      countMap[g.category] = (countMap[g.category] ?? 0) + g._count.id;
+    }
+    for (const g of businessCounts) {
+      countMap[g.category] = (countMap[g.category] ?? 0) + g._count.id;
+    }
+
+    const enriched = categories.map((c) => ({
+      ...c,
+      itemCount: countMap[c.slug] ?? countMap[c.name] ?? 0,
+    }));
+
+    return NextResponse.json(enriched);
   } catch (error) {
     console.error("GET /api/categories error:", error);
     return NextResponse.json(

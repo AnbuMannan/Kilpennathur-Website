@@ -41,6 +41,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/* Map jobType to Schema.org employmentType */
+function mapEmploymentType(jobType: string): string {
+  const map: Record<string, string> = {
+    "full-time": "FULL_TIME",
+    "part-time": "PART_TIME",
+    contract: "CONTRACTOR",
+    internship: "INTERN",
+    temporary: "TEMPORARY",
+  };
+  return map[jobType.toLowerCase()] ?? "OTHER";
+}
+
 export default async function JobDetailPage({ params }: Props) {
   const { id } = await params;
 
@@ -55,8 +67,59 @@ export default async function JobDetailPage({ params }: Props) {
     : null;
   const isOpen = !deadline || deadline >= new Date();
 
+  /* ── JSON-LD Structured Data (Google Jobs Rich Snippet) ── */
+  const baseUrl = process.env.NEXTAUTH_URL ?? "https://kilpennathur.com";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const jobPostingLd: Record<string, any> = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: job.title,
+    description: job.description ?? job.title,
+    datePosted: (job.publishedAt ?? job.createdAt).toISOString(),
+    employmentType: mapEmploymentType(job.jobType),
+    hiringOrganization: {
+      "@type": "Organization",
+      name: job.company,
+    },
+    jobLocation: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: job.location ?? "Kilpennathur",
+        addressRegion: "Tamil Nadu",
+        addressCountry: "IN",
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${baseUrl}/jobs/${job.id}`,
+    },
+  };
+  if (deadline) {
+    jobPostingLd.validThrough = deadline.toISOString();
+  }
+  if (job.salaryDescription) {
+    jobPostingLd.baseSalary = {
+      "@type": "MonetaryAmount",
+      currency: "INR",
+      value: {
+        "@type": "QuantitativeValue",
+        value: job.salaryDescription,
+      },
+    };
+  }
+  if (job.applicationUrl) {
+    jobPostingLd.directApply = true;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      {/* JSON-LD Structured Data for Google Jobs */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingLd) }}
+      />
+
       <div className="max-w-4xl mx-auto px-4">
         <Breadcrumbs
           items={[

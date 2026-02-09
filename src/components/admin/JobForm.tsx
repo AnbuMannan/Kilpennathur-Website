@@ -9,6 +9,8 @@ import type { CreateJobState, UpdateJobState } from "@/app/admin/jobs/actions";
 import { uploadImage } from "@/lib/uploadImage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AdminFormLayout } from "./AdminFormLayout";
+import { FormPreviewCard } from "./FormPreviewCard";
 
 /* ---------- Constants ---------- */
 
@@ -105,6 +107,10 @@ export function JobForm(props: JobFormProps) {
   const [imageUrl, setImageUrl] = useState<string>(job?.image ?? "");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string>("");
+  const [previewTitle, setPreviewTitle] = useState(job?.title ?? "");
+  const [previewCompany, setPreviewCompany] = useState(job?.company ?? "");
+  const [previewJobType, setPreviewJobType] = useState(job?.jobType ?? "full-time");
+  const [previewStatus, setPreviewStatus] = useState(job?.status ?? "draft");
 
   useEffect(() => {
     if (state?.error) {
@@ -170,6 +176,21 @@ export function JobForm(props: JobFormProps) {
   };
 
   return (
+    <AdminFormLayout
+      preview={
+        <FormPreviewCard
+          title={previewTitle}
+          subtitle={previewCompany}
+          image={imagePreview}
+          statusLabel={previewStatus}
+          statusColor={previewStatus === "published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}
+          fields={[
+            { label: "Type", value: previewJobType },
+            { label: "Company", value: previewCompany },
+          ]}
+        />
+      }
+    >
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
       {isEdit && job && <input type="hidden" name="id" value={job.id} />}
 
@@ -195,6 +216,7 @@ export function JobForm(props: JobFormProps) {
               name="title"
               required
               defaultValue={job?.title ?? ""}
+              onChange={(e) => setPreviewTitle(e.target.value)}
             />
             {state?.fieldErrors?.title && (
               <p className="mt-1 text-sm text-destructive">
@@ -231,6 +253,7 @@ export function JobForm(props: JobFormProps) {
               name="company"
               required
               defaultValue={job?.company ?? ""}
+              onChange={(e) => setPreviewCompany(e.target.value)}
             />
             {state?.fieldErrors?.company && (
               <p className="mt-1 text-sm text-destructive">
@@ -273,6 +296,7 @@ export function JobForm(props: JobFormProps) {
               id="jobType"
               name="jobType"
               defaultValue={job?.jobType ?? "full-time"}
+              onChange={(e) => setPreviewJobType(e.target.value)}
               className={selectCls}
             >
               {JOB_TYPES.map((t) => (
@@ -378,6 +402,7 @@ export function JobForm(props: JobFormProps) {
               id="status"
               name="status"
               defaultValue={job?.status ?? "draft"}
+              onChange={(e) => setPreviewStatus(e.target.value)}
               className={selectCls}
             >
               <option value="draft">Draft</option>
@@ -566,5 +591,6 @@ export function JobForm(props: JobFormProps) {
         </Button>
       </div>
     </form>
+    </AdminFormLayout>
   );
 }

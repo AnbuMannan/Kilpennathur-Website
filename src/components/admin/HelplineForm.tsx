@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, startTransition } from "react";
+import { useActionState, useEffect, useState, startTransition } from "react";
 import Link from "next/link";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -8,6 +8,8 @@ import { createHelpline, updateHelpline } from "@/app/admin/utilities/helplines/
 import type { HelplineActionState } from "@/app/admin/utilities/helplines/actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AdminFormLayout } from "./AdminFormLayout";
+import { FormPreviewCard } from "./FormPreviewCard";
 
 /* ---------- Constants ---------- */
 
@@ -51,6 +53,10 @@ export function HelplineForm(props: HelplineFormProps) {
     null as HelplineActionState | null,
   );
 
+  const [previewTitle, setPreviewTitle] = useState(helpline?.title ?? "");
+  const [previewNumber, setPreviewNumber] = useState(helpline?.number ?? "");
+  const [previewCategory, setPreviewCategory] = useState(helpline?.category ?? "Emergency");
+
   useEffect(() => {
     if (state?.error) {
       toast.error(state.error);
@@ -84,6 +90,19 @@ export function HelplineForm(props: HelplineFormProps) {
   };
 
   return (
+    <AdminFormLayout
+      preview={
+        <FormPreviewCard
+          title={previewTitle || "Helpline"}
+          statusLabel={previewCategory}
+          statusColor="bg-red-100 text-red-700"
+          fields={[
+            { label: "Number", value: previewNumber },
+            { label: "Category", value: previewCategory },
+          ]}
+        />
+      }
+    >
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
       {isEdit && helpline && (
         <input type="hidden" name="id" value={helpline.id} />
@@ -112,6 +131,7 @@ export function HelplineForm(props: HelplineFormProps) {
               required
               defaultValue={helpline?.title ?? ""}
               placeholder="e.g., Police Station"
+              onChange={(e) => setPreviewTitle(e.target.value)}
             />
             {state?.fieldErrors?.title && (
               <p className="mt-1 text-sm text-destructive">
@@ -143,6 +163,7 @@ export function HelplineForm(props: HelplineFormProps) {
               required
               defaultValue={helpline?.number ?? ""}
               placeholder="e.g., 100 or 04175-252525"
+              onChange={(e) => setPreviewNumber(e.target.value)}
             />
             {state?.fieldErrors?.number && (
               <p className="mt-1 text-sm text-destructive">
@@ -159,6 +180,7 @@ export function HelplineForm(props: HelplineFormProps) {
               name="category"
               required
               defaultValue={helpline?.category ?? "Emergency"}
+              onChange={(e) => setPreviewCategory(e.target.value)}
               className={selectCls}
             >
               {CATEGORIES.map((c) => (
@@ -186,5 +208,6 @@ export function HelplineForm(props: HelplineFormProps) {
         </Button>
       </div>
     </form>
+    </AdminFormLayout>
   );
 }

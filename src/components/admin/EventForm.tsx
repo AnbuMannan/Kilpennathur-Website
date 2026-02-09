@@ -7,6 +7,8 @@ import type { CreateEventState, UpdateEventState } from "@/app/admin/events/acti
 import { uploadImage } from "@/lib/uploadImage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AdminFormLayout } from "./AdminFormLayout";
+import { FormPreviewCard } from "./FormPreviewCard";
 
 /** Format Date for datetime-local input (YYYY-MM-DDTHH:mm) */
 function toDateTimeLocal(date: Date): string {
@@ -45,6 +47,8 @@ export function EventForm(props: EventFormProps) {
   const [imageUrl, setImageUrl] = useState<string>(event?.image ?? "");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string>("");
+  const [previewTitle, setPreviewTitle] = useState(event?.title ?? "");
+  const [previewTitleTamil, setPreviewTitleTamil] = useState(event?.titleTamil ?? "");
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -78,6 +82,17 @@ export function EventForm(props: EventFormProps) {
     : "";
 
   return (
+    <AdminFormLayout
+      preview={
+        <FormPreviewCard
+          title={previewTitle}
+          subtitle={previewTitleTamil}
+          image={imagePreview}
+          statusLabel="Event"
+          statusColor="bg-pink-100 text-pink-700"
+        />
+      }
+    >
     <form action={formAction} className="max-w-2xl space-y-4">
       {isEdit && event && <input type="hidden" name="id" value={event.id} />}
 
@@ -97,6 +112,7 @@ export function EventForm(props: EventFormProps) {
           type="text"
           required
           defaultValue={event?.title ?? ""}
+          onChange={(e) => setPreviewTitle(e.target.value)}
           className="w-full"
         />
         {state?.fieldErrors?.title && (
@@ -115,6 +131,7 @@ export function EventForm(props: EventFormProps) {
           name="titleTamil"
           type="text"
           defaultValue={event?.titleTamil ?? ""}
+          onChange={(e) => setPreviewTitleTamil(e.target.value)}
           className="w-full"
         />
       </div>
@@ -191,5 +208,6 @@ export function EventForm(props: EventFormProps) {
         </Button>
       </div>
     </form>
+    </AdminFormLayout>
   );
 }

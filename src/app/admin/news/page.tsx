@@ -31,9 +31,11 @@ export default async function AdminNewsPage() {
           items={newsList.map((n) => ({
             id: n.id,
             title: n.title,
+            titleTamil: n.titleTamil,
             image: n.image,
             category: n.category,
             status: n.status,
+            views: n.views,
             createdAt: n.createdAt,
           }))}
         />

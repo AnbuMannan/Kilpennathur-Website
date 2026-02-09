@@ -1,26 +1,14 @@
 import Link from "next/link";
-import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import { DeleteClassifiedButton } from "./DeleteClassifiedButton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
+import { ClassifiedsListClient } from "./ClassifiedsListClient";
 
 type SearchParams = { search?: string | string[] };
 
 function toStr(v: string | string[] | undefined): string {
   return Array.isArray(v) ? (v[0] ?? "") : (v ?? "");
-}
-
-function formatPrice(price: number | null, label: string | null): string {
-  if (price == null) return "—";
-  const formatted = new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(price);
-  return label ? `${formatted} ${label}` : formatted;
 }
 
 export default async function AdminClassifiedsPage({
@@ -89,107 +77,23 @@ export default async function AdminClassifiedsPage({
           {search ? " Try a different search." : " Create your first listing."}
         </p>
       ) : (
-        <div className="border border-border rounded-md overflow-hidden">
-          <table
-            className="w-full text-left text-sm"
-            style={{ tableLayout: "fixed" }}
-          >
-            <colgroup>
-              <col style={{ width: "8%" }} />
-              <col style={{ width: "28%" }} />
-              <col style={{ width: "14%" }} />
-              <col style={{ width: "16%" }} />
-              <col style={{ width: "10%" }} />
-              <col style={{ width: "12%" }} />
-              <col style={{ width: "12%" }} />
-            </colgroup>
-            <thead className="bg-muted">
-              <tr>
-                <th className="px-3 py-3 font-semibold">Img</th>
-                <th className="px-3 py-3 font-semibold">Title</th>
-                <th className="px-3 py-3 font-semibold">Type</th>
-                <th className="px-3 py-3 font-semibold">Price</th>
-                <th className="px-3 py-3 font-semibold">Status</th>
-                <th className="px-3 py-3 font-semibold">Featured</th>
-                <th className="px-3 py-3 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {classifieds.map((c) => {
-                const firstImage = c.images
-                  .split(",")
-                  .map((u) => u.trim())
-                  .filter(Boolean)[0];
-                return (
-                  <tr
-                    key={c.id}
-                    className="border-t border-border hover:bg-muted/50"
-                  >
-                    <td className="px-3 py-2 align-middle">
-                      {firstImage ? (
-                        <Image
-                          src={firstImage}
-                          alt={c.title}
-                          width={48}
-                          height={48}
-                          className="rounded object-cover w-12 h-12"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                          —
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 align-top">
-                      <span
-                        className="block truncate font-medium"
-                        title={c.title}
-                      >
-                        {c.title}
-                      </span>
-                      {c.titleTamil && (
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {c.titleTamil}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 align-top">
-                      <Badge variant="outline" className="text-xs capitalize">
-                        {c.type}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-3 align-top text-sm">
-                      {formatPrice(c.price, c.priceLabel)}
-                    </td>
-                    <td className="px-3 py-3 align-top">
-                      <Badge
-                        variant={
-                          c.status === "published" ? "default" : "secondary"
-                        }
-                        className="text-xs"
-                      >
-                        {c.status}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-3 align-top text-xs">
-                      {c.isFeatured ? "⭐ Yes" : "No"}
-                    </td>
-                    <td className="px-3 py-3 whitespace-nowrap align-top">
-                      <Link
-                        href={`/admin/classifieds/${c.id}/edit`}
-                        className="text-primary hover:underline"
-                      >
-                        Edit
-                      </Link>
-                      <span className="text-muted-foreground">|</span>
-                      <DeleteClassifiedButton id={c.id} />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <ClassifiedsListClient
+          items={classifieds.map((c) => ({
+            id: c.id,
+            title: c.title,
+            titleTamil: c.titleTamil,
+            type: c.type,
+            price: c.price,
+            priceLabel: c.priceLabel,
+            status: c.status,
+            isFeatured: c.isFeatured,
+            images: c.images,
+            contactName: c.contactName,
+            contactPhone: c.contactPhone,
+            location: c.location,
+            createdAt: c.createdAt.toISOString(),
+          }))}
+        />
       )}
     </div>
   );

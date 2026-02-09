@@ -48,6 +48,8 @@ const contactSchema = z.object({
     .optional(),
   subject: z.string().min(5, "Subject must be at least 5 characters"),
   message: z.string().min(10, "Message must be at least 10 characters"),
+  /* Honeypot — invisible to real users, bots auto-fill it */
+  confirm_email: z.string().optional(),
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;
@@ -166,7 +168,7 @@ export default function ContactPage() {
     reset,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
-    defaultValues: { phone: "" },
+    defaultValues: { phone: "", confirm_email: "" },
   });
 
   const onSubmit = async (data: ContactFormData) => {
@@ -408,6 +410,18 @@ export default function ContactPage() {
                       {errors.message.message}
                     </p>
                   )}
+                </div>
+
+                {/* Honeypot — hidden from real users, bots auto-fill */}
+                <div className="hidden" aria-hidden="true">
+                  <label htmlFor="confirm_email">Confirm Email</label>
+                  <input
+                    id="confirm_email"
+                    type="email"
+                    autoComplete="off"
+                    tabIndex={-1}
+                    {...register("confirm_email")}
+                  />
                 </div>
 
                 <Button

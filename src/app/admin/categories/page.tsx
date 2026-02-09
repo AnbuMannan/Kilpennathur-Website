@@ -1,17 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Tag,
+  Newspaper,
+  Building2,
+  CalendarDays,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +24,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 interface Category {
@@ -32,13 +33,43 @@ interface Category {
   slug: string;
   type: string;
   createdAt: Date;
+  itemCount: number;
 }
+
+const typeMeta: Record<
+  string,
+  { label: string; icon: React.ReactNode; color: string; badgeColor: string }
+> = {
+  news: {
+    label: "News",
+    icon: <Newspaper className="h-4 w-4" />,
+    color: "text-blue-600 dark:text-blue-400",
+    badgeColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  },
+  business: {
+    label: "Business",
+    icon: <Building2 className="h-4 w-4" />,
+    color: "text-emerald-600 dark:text-emerald-400",
+    badgeColor:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  },
+  event: {
+    label: "Events",
+    icon: <CalendarDays className="h-4 w-4" />,
+    color: "text-purple-600 dark:text-purple-400",
+    badgeColor:
+      "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+  },
+};
+
+const typeOrder = ["news", "business", "event"];
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   const [formData, setFormData] = useState({
     name: "",
@@ -65,22 +96,20 @@ export default function CategoriesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       const url = editingCategory
         ? `/api/categories/${editingCategory.id}`
         : "/api/categories";
-
       const method = editingCategory ? "PUT" : "POST";
-
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
       if (res.ok) {
-        toast.success(editingCategory ? "Category updated" : "Category created");
+        toast.success(
+          editingCategory ? "Category updated" : "Category created"
+        );
         setIsDialogOpen(false);
         resetForm();
         fetchCategories();
@@ -95,12 +124,8 @@ export default function CategoriesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this category?")) return;
-
     try {
-      const res = await fetch(`/api/categories/${id}`, {
-        method: "DELETE",
-      });
-
+      const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
       if (res.ok) {
         toast.success("Category deleted");
         fetchCategories();
@@ -129,18 +154,62 @@ export default function CategoriesPage() {
     setIsDialogOpen(true);
   };
 
-  const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(
-      new Date(date)
+  const handleAddInType = (type: string) => {
+    resetForm();
+    setFormData((f) => ({ ...f, type }));
+    setIsDialogOpen(true);
+  };
+
+  const toggleCollapse = (type: string) => {
+    setCollapsed((prev) => ({ ...prev, [type]: !prev[type] }));
+  };
+
+  // Group categories by type
+  const grouped = categories.reduce(
+    (acc, cat) => {
+      if (!acc[cat.type]) acc[cat.type] = [];
+      acc[cat.type].push(cat);
+      return acc;
+    },
+    {} as Record<string, Category[]>
+  );
+
+  const availableTypes = typeOrder.filter(
+    (t) => grouped[t] && grouped[t].length > 0
+  );
+  // Include types from data that aren't in typeOrder
+  const extraTypes = Object.keys(grouped).filter(
+    (t) => !typeOrder.includes(t)
+  );
+  const allTypes = [...availableTypes, ...extraTypes];
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-2xl font-bold">Categories</h1>
+          <p className="text-sm text-muted-foreground mt-1">Loading...</p>
+        </div>
+        <div className="animate-pulse space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 bg-muted rounded-lg" />
+          ))}
+        </div>
+      </div>
     );
+  }
 
   return (
-    <div className="p-6 max-w-5xl">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Categories</h1>
-          <p className="text-muted-foreground">
-            Manage news and business categories
+          <div className="flex items-center gap-2">
+            <Tag className="h-5 w-5 text-primary" />
+            <h1 className="text-2xl font-bold">Categories</h1>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            {categories.length} categories across{" "}
+            {allTypes.length} types
           </p>
         </div>
 
@@ -153,7 +222,7 @@ export default function CategoriesPage() {
         >
           <DialogTrigger asChild>
             <Button>
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2" />
               Add Category
             </Button>
           </DialogTrigger>
@@ -189,7 +258,6 @@ export default function CategoriesPage() {
                     className="mt-1.5"
                   />
                 </div>
-
                 <div>
                   <Label htmlFor="nameTamil">Name (Tamil)</Label>
                   <Input
@@ -201,7 +269,6 @@ export default function CategoriesPage() {
                     className="mt-1.5"
                   />
                 </div>
-
                 <div>
                   <Label htmlFor="slug">Slug</Label>
                   <Input
@@ -214,7 +281,6 @@ export default function CategoriesPage() {
                     className="mt-1.5 font-mono text-sm"
                   />
                 </div>
-
                 <div>
                   <Label htmlFor="type">Type</Label>
                   <select
@@ -231,7 +297,6 @@ export default function CategoriesPage() {
                   </select>
                 </div>
               </div>
-
               <DialogFooter>
                 <Button
                   type="button"
@@ -249,71 +314,117 @@ export default function CategoriesPage() {
         </Dialog>
       </div>
 
-      {loading ? (
-        <p className="text-muted-foreground py-8">Loading categories...</p>
-      ) : categories.length === 0 ? (
-        <p className="text-muted-foreground py-8">
-          No categories yet. Add your first category to get started.
-        </p>
+      {categories.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground rounded-xl border border-border bg-card">
+          <Tag className="h-12 w-12 mx-auto mb-3 opacity-30" />
+          <p className="font-medium">No categories yet</p>
+          <p className="text-sm mt-1">
+            Add your first category to organize content.
+          </p>
+        </div>
       ) : (
-        <div className="border border-border rounded-md overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Tamil Name</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell>{category.nameTamil || "—"}</TableCell>
-                  <TableCell>
-                    <code className="text-xs bg-muted px-2 py-1 rounded">
-                      {category.slug}
-                    </code>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        category.type === "news" ? "default" : "secondary"
-                      }
-                    >
-                      {category.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {formatDate(category.createdAt)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(category)}
-                        aria-label={`Edit ${category.name}`}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDelete(category.id)}
-                        aria-label={`Delete ${category.name}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+        <div className="space-y-4">
+          {allTypes.map((type) => {
+            const meta = typeMeta[type] ?? {
+              label: type,
+              icon: <Tag className="h-4 w-4" />,
+              color: "text-gray-600",
+              badgeColor: "bg-gray-100 text-gray-700",
+            };
+            const items = grouped[type] ?? [];
+            const isCollapsed = collapsed[type] ?? false;
+
+            return (
+              <div
+                key={type}
+                className="rounded-xl border border-border bg-card overflow-hidden"
+              >
+                {/* Group Header */}
+                <button
+                  onClick={() => toggleCollapse(type)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={meta.color}>{meta.icon}</div>
+                    <div>
+                      <span className="font-semibold text-sm">
+                        {meta.label}
+                      </span>
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        ({items.length}{" "}
+                        {items.length === 1 ? "category" : "categories"})
+                      </span>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddInType(type);
+                      }}
+                      className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                      title={`Add ${meta.label} category`}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                    {isCollapsed ? (
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Category pills */}
+                {!isCollapsed && (
+                  <div className="px-4 pb-4 pt-0">
+                    <div className="flex flex-wrap gap-2">
+                      {items.map((cat) => (
+                        <div
+                          key={cat.id}
+                          className={`group inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors`}
+                        >
+                          <span className="text-sm font-medium">
+                            {cat.name}
+                          </span>
+                          {cat.nameTamil && (
+                            <span className="text-xs text-muted-foreground">
+                              ({cat.nameTamil})
+                            </span>
+                          )}
+
+                          {/* Count badge */}
+                          <span
+                            className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold ${meta.badgeColor}`}
+                          >
+                            {cat.itemCount}
+                          </span>
+
+                          {/* Actions (visible on hover) */}
+                          <div className="inline-flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                            <button
+                              onClick={() => handleEdit(cat)}
+                              className="p-1 rounded hover:bg-muted transition-colors"
+                              title="Edit"
+                            >
+                              <Pencil className="h-3 w-3 text-muted-foreground" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(cat.id)}
+                              className="p-1 rounded hover:bg-destructive/10 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { DeleteVillageButton } from "./DeleteVillageButton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { VillagesListClient } from "./VillagesListClient";
 
 type SearchParams = { search?: string | string[] };
 
@@ -31,11 +31,8 @@ export default async function AdminVillagesPage({
     orderBy: { name: "asc" },
   });
 
-  const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(date);
-
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-6xl">
       <div className="flex items-center justify-between mb-6">
         <div className="flex-1" aria-hidden />
         <h1 className="text-4xl font-bold text-center flex-none">
@@ -80,73 +77,21 @@ export default async function AdminVillagesPage({
           {search ? " Try a different search." : " Create your first village."}
         </p>
       ) : (
-        <div className="border border-border rounded-md overflow-hidden">
-          <table className="w-full text-left text-sm" style={{ tableLayout: "fixed" }}>
-            <colgroup>
-              <col style={{ width: "28%" }} />
-              <col style={{ width: "28%" }} />
-              <col style={{ width: "18%" }} />
-              <col style={{ width: "14%" }} />
-              <col style={{ width: "12%" }} />
-            </colgroup>
-            <thead className="bg-muted">
-              <tr>
-                <th className="px-3 py-3 font-semibold text-left whitespace-nowrap">
-                  Name (EN)
-                </th>
-                <th className="px-3 py-3 font-semibold text-left whitespace-nowrap">
-                  Name (Tamil)
-                </th>
-                <th className="px-3 py-3 font-semibold text-left whitespace-nowrap">
-                  Slug
-                </th>
-                <th className="px-3 py-3 font-semibold text-left whitespace-nowrap">
-                  Created
-                </th>
-                <th className="px-3 py-3 font-semibold text-left whitespace-nowrap">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {villages.map((v) => (
-                <tr
-                  key={v.id}
-                  className="border-t border-border hover:bg-muted/50"
-                >
-                  <td className="px-3 py-3 align-top">
-                    <span className="block truncate" title={v.name}>
-                      {v.name}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 align-top">
-                    <span className="block truncate" title={v.nameTamil}>
-                      {v.nameTamil}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 align-top font-mono text-xs">
-                    <span className="block truncate" title={v.slug}>
-                      {v.slug}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 text-muted-foreground whitespace-nowrap align-top">
-                    {formatDate(v.createdAt)}
-                  </td>
-                  <td className="px-3 py-3 whitespace-nowrap align-top">
-                    <Link
-                      href={`/admin/villages/edit/${v.id}`}
-                      className="text-primary hover:underline"
-                    >
-                      Edit
-                    </Link>
-                    <span className="text-muted-foreground">|</span>
-                    <DeleteVillageButton id={v.id} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <VillagesListClient
+          items={villages.map((v) => ({
+            id: v.id,
+            name: v.name,
+            nameTamil: v.nameTamil,
+            slug: v.slug,
+            description: v.description,
+            image: v.image,
+            presidentName: v.presidentName,
+            population: v.population,
+            totalStreets: v.totalStreets,
+            wardCount: v.wardCount,
+            createdAt: v.createdAt.toISOString(),
+          }))}
+        />
       )}
     </div>
   );

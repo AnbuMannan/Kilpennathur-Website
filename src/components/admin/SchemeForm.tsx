@@ -9,6 +9,8 @@ import type { SchemeActionState } from "@/app/admin/schemes/actions";
 import { generateSlug } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AdminFormLayout } from "./AdminFormLayout";
+import { FormPreviewCard } from "./FormPreviewCard";
 
 /* ---------- Constants ---------- */
 
@@ -82,6 +84,10 @@ export function SchemeForm(props: SchemeFormProps) {
 
   const [slug, setSlug] = useState(scheme?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(false);
+  const [previewTitle, setPreviewTitle] = useState(scheme?.title ?? "");
+  const [previewTitleTamil, setPreviewTitleTamil] = useState(scheme?.titleTamil ?? "");
+  const [previewSponsor, setPreviewSponsor] = useState(scheme?.sponsor ?? "State Govt");
+  const [previewStatus, setPreviewStatus] = useState(scheme?.status ?? "draft");
 
   useEffect(() => {
     if (state?.error) {
@@ -90,6 +96,7 @@ export function SchemeForm(props: SchemeFormProps) {
   }, [state?.error]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPreviewTitle(e.target.value);
     if (!slugTouched) {
       setSlug(generateSlug(e.target.value));
     }
@@ -133,6 +140,20 @@ export function SchemeForm(props: SchemeFormProps) {
   };
 
   return (
+    <AdminFormLayout
+      preview={
+        <FormPreviewCard
+          title={previewTitle}
+          subtitle={previewTitleTamil}
+          statusLabel={previewStatus}
+          statusColor={previewStatus === "published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}
+          fields={[
+            { label: "Sponsor", value: previewSponsor },
+            { label: "Slug", value: slug },
+          ]}
+        />
+      }
+    >
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
       {isEdit && scheme && (
         <input type="hidden" name="id" value={scheme.id} />
@@ -180,6 +201,7 @@ export function SchemeForm(props: SchemeFormProps) {
               name="titleTamil"
               defaultValue={scheme?.titleTamil ?? ""}
               placeholder="தமிழ் தலைப்பு"
+              onChange={(e) => setPreviewTitleTamil(e.target.value)}
             />
           </div>
         </div>
@@ -221,6 +243,7 @@ export function SchemeForm(props: SchemeFormProps) {
               name="sponsor"
               required
               defaultValue={scheme?.sponsor ?? "State Govt"}
+              onChange={(e) => setPreviewSponsor(e.target.value)}
               className={selectCls}
             >
               {SPONSORS.map((s) => (
@@ -290,6 +313,7 @@ export function SchemeForm(props: SchemeFormProps) {
               id="status"
               name="status"
               defaultValue={scheme?.status ?? "draft"}
+              onChange={(e) => setPreviewStatus(e.target.value)}
               className={selectCls}
             >
               <option value="draft">Draft</option>
@@ -356,5 +380,6 @@ export function SchemeForm(props: SchemeFormProps) {
         </Button>
       </div>
     </form>
+    </AdminFormLayout>
   );
 }

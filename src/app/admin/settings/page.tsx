@@ -1,18 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save } from "lucide-react";
+import { Save, Settings, Sliders, Globe, Search as SearchIcon, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 interface Setting {
@@ -24,10 +17,36 @@ interface Setting {
   category: string;
 }
 
+const categoryMeta: Record<string, { label: string; icon: React.ReactNode; description: string }> = {
+  general: {
+    label: "General",
+    icon: <Settings className="h-4 w-4" />,
+    description: "Site name and core configuration",
+  },
+  pagination: {
+    label: "Pagination",
+    icon: <Sliders className="h-4 w-4" />,
+    description: "Configure items shown per page across the site",
+  },
+  display: {
+    label: "Display",
+    icon: <Wrench className="h-4 w-4" />,
+    description: "Toggle features and elements on the public site",
+  },
+  seo: {
+    label: "SEO",
+    icon: <Globe className="h-4 w-4" />,
+    description: "Search engine optimization and meta defaults",
+  },
+};
+
+const categoryOrder = ["general", "pagination", "display", "seo"];
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Setting[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("general");
 
   useEffect(() => {
     fetchSettings();
@@ -39,10 +58,16 @@ export default function SettingsPage() {
       const data = await res.json();
       if (res.ok) {
         setSettings(data);
+        // Set first available category as active
+        if (data.length > 0) {
+          const cats = [...new Set(data.map((s: Setting) => s.category))];
+          const first = categoryOrder.find((c) => cats.includes(c)) ?? cats[0];
+          setActiveTab(first as string);
+        }
       } else {
         toast.error("Failed to load settings");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load settings");
     } finally {
       setLoading(false);
@@ -50,7 +75,6 @@ export default function SettingsPage() {
   };
 
   const updateSetting = async (key: string, value: string) => {
-    setSaving(true);
     try {
       const res = await fetch("/api/site-settings", {
         method: "POST",
@@ -59,32 +83,36 @@ export default function SettingsPage() {
       });
 
       if (res.ok) {
-        toast.success("Setting updated successfully");
         setSettings((prev) =>
           prev.map((s) => (s.key === key ? { ...s, value } : s))
         );
+        return true;
       } else {
         const err = await res.json();
         toast.error(err.error || "Failed to update setting");
+        return false;
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
-    } finally {
-      setSaving(false);
+      return false;
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
+    setSaving(true);
 
-    for (const setting of settings) {
+    const formData = new FormData(e.target as HTMLFormElement);
+    let updated = 0;
+
+    for (const setting of settings.filter((s) => s.category === activeTab)) {
       let value: string;
       const formValue = formData.get(setting.key);
 
-      // Checkbox: unchecked = null, checked = "true"
-      if (setting.category === "display" && formValue === null) {
-        value = "false";
+      // For display (switch) settings: if not in formData, it's "false"
+      if (setting.category === "display") {
+        // Switches are handled in real-time, skip form submit for them
+        continue;
       } else if (formValue !== null) {
         value = String(formValue);
       } else {
@@ -92,8 +120,25 @@ export default function SettingsPage() {
       }
 
       if (value !== setting.value) {
-        await updateSetting(setting.key, value);
+        const ok = await updateSetting(setting.key, value);
+        if (ok) updated++;
       }
+    }
+
+    setSaving(false);
+    toast.success(
+      updated > 0 ? "Settings updated successfully" : "No changes to save"
+    );
+  };
+
+  const handleSwitchChange = async (key: string, checked: boolean) => {
+    const value = checked ? "true" : "false";
+    setSettings((prev) =>
+      prev.map((s) => (s.key === key ? { ...s, value } : s))
+    );
+    const ok = await updateSetting(key, value);
+    if (ok) {
+      toast.success("Setting updated");
     }
   };
 
@@ -106,182 +151,162 @@ export default function SettingsPage() {
     {} as Record<string, Setting[]>
   );
 
-  if (loading)
+  const availableCategories = categoryOrder.filter(
+    (c) => groupedSettings[c] && groupedSettings[c].length > 0
+  );
+
+  if (loading) {
     return (
-      <div className="p-6">
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-2xl font-bold">Site Settings</h1>
+          <p className="text-sm text-muted-foreground mt-1">Loading...</p>
+        </div>
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-gray-200 rounded" />
-          <div className="h-4 w-96 bg-gray-100 rounded" />
+          <div className="h-8 w-48 bg-muted rounded" />
+          <div className="h-4 w-96 bg-muted rounded" />
+          <div className="h-4 w-64 bg-muted rounded" />
         </div>
       </div>
     );
+  }
+
+  const meta = categoryMeta[activeTab] ?? {
+    label: activeTab,
+    icon: <Settings className="h-4 w-4" />,
+    description: "",
+  };
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Site Settings</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Configure pagination, display options, and SEO settings
+    <div className="space-y-4">
+      <div>
+        <div className="flex items-center gap-2">
+          <Settings className="h-5 w-5 text-primary" />
+          <h1 className="text-2xl font-bold">Site Settings</h1>
+        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          Configure site behavior, display options, and SEO
         </p>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <Tabs defaultValue="pagination" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="pagination">Pagination</TabsTrigger>
-            <TabsTrigger value="display">Display</TabsTrigger>
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="seo">SEO</TabsTrigger>
-          </TabsList>
+      <div className="flex gap-6 min-h-[calc(100vh-240px)]">
+        {/* Vertical tab navigation */}
+        <nav className="w-48 shrink-0">
+          <div className="sticky top-4 space-y-1">
+            {availableCategories.map((cat) => {
+              const cm = categoryMeta[cat] ?? { label: cat, icon: null };
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setActiveTab(cat)}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${
+                    activeTab === cat
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {cm.icon}
+                  {cm.label}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
 
-          <TabsContent value="pagination">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pagination Settings</CardTitle>
-                <CardDescription>
-                  Configure how many items to display per page
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {groupedSettings.pagination?.map((setting) => (
-                  <div key={setting.key} className="space-y-2">
-                    <Label htmlFor={setting.key}>{setting.label}</Label>
-                    <Input
+        {/* Content area */}
+        <div className="flex-1 min-w-0">
+          <div className="rounded-xl border border-border bg-card p-6">
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                {meta.icon}
+                {meta.label} Settings
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {meta.description}
+              </p>
+            </div>
+
+            {activeTab === "display" ? (
+              /* Display settings use real-time switches */
+              <div className="space-y-4">
+                {groupedSettings.display?.map((setting) => (
+                  <div
+                    key={setting.key}
+                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="space-y-0.5">
+                      <Label htmlFor={setting.key} className="text-sm font-medium cursor-pointer">
+                        {setting.label}
+                      </Label>
+                      {setting.description && (
+                        <p className="text-xs text-muted-foreground">
+                          {setting.description}
+                        </p>
+                      )}
+                    </div>
+                    <Switch
                       id={setting.key}
-                      name={setting.key}
-                      type="number"
-                      min={1}
-                      max={50}
-                      defaultValue={setting.value}
+                      checked={setting.value === "true"}
+                      onCheckedChange={(checked) =>
+                        handleSwitchChange(setting.key, checked)
+                      }
                     />
-                    {setting.description && (
-                      <p className="text-sm text-gray-500">
-                        {setting.description}
-                      </p>
-                    )}
                   </div>
                 ))}
-                {(!groupedSettings.pagination || groupedSettings.pagination.length === 0) && (
-                  <p className="text-sm text-muted-foreground">
-                    No pagination settings found.
+                {(!groupedSettings.display ||
+                  groupedSettings.display.length === 0) && (
+                  <p className="text-sm text-muted-foreground py-4">
+                    No display settings configured.
                   </p>
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="display">
-            <Card>
-              <CardHeader>
-                <CardTitle>Display Settings</CardTitle>
-                <CardDescription>
-                  Configure what elements to show on the site
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {groupedSettings.display?.map((setting) => (
-                  <div key={setting.key} className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
+              </div>
+            ) : (
+              /* Other settings use a form */
+              <form onSubmit={handleSubmit}>
+                <div className="space-y-5">
+                  {groupedSettings[activeTab]?.map((setting) => (
+                    <div
+                      key={setting.key}
+                      className="space-y-2 p-4 rounded-lg border border-border hover:bg-muted/30 transition-colors"
+                    >
+                      <Label htmlFor={setting.key} className="text-sm font-medium">
+                        {setting.label}
+                      </Label>
+                      <Input
                         id={setting.key}
                         name={setting.key}
-                        type="checkbox"
-                        defaultChecked={setting.value === "true"}
-                        value="true"
-                        className="h-4 w-4 rounded border-input"
+                        type={activeTab === "pagination" ? "number" : "text"}
+                        min={activeTab === "pagination" ? 1 : undefined}
+                        max={activeTab === "pagination" ? 50 : undefined}
+                        defaultValue={setting.value}
+                        className="max-w-md"
                       />
-                      <Label htmlFor={setting.key}>{setting.label}</Label>
+                      {setting.description && (
+                        <p className="text-xs text-muted-foreground">
+                          {setting.description}
+                        </p>
+                      )}
                     </div>
-                    {setting.description && (
-                      <p className="text-sm text-gray-500">
-                        {setting.description}
-                      </p>
-                    )}
-                  </div>
-                ))}
-                {(!groupedSettings.display || groupedSettings.display.length === 0) && (
-                  <p className="text-sm text-muted-foreground">
-                    No display settings found.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  ))}
+                  {(!groupedSettings[activeTab] ||
+                    groupedSettings[activeTab].length === 0) && (
+                    <p className="text-sm text-muted-foreground py-4">
+                      No settings found in this category.
+                    </p>
+                  )}
+                </div>
 
-          <TabsContent value="general">
-            <Card>
-              <CardHeader>
-                <CardTitle>General Settings</CardTitle>
-                <CardDescription>
-                  Site name and general configuration
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {groupedSettings.general?.map((setting) => (
-                  <div key={setting.key} className="space-y-2">
-                    <Label htmlFor={setting.key}>{setting.label}</Label>
-                    <Input
-                      id={setting.key}
-                      name={setting.key}
-                      defaultValue={setting.value}
-                    />
-                    {setting.description && (
-                      <p className="text-sm text-gray-500">
-                        {setting.description}
-                      </p>
-                    )}
-                  </div>
-                ))}
-                {(!groupedSettings.general || groupedSettings.general.length === 0) && (
-                  <p className="text-sm text-muted-foreground">
-                    No general settings found.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="seo">
-            <Card>
-              <CardHeader>
-                <CardTitle>SEO Settings</CardTitle>
-                <CardDescription>
-                  Default meta descriptions and SEO-related options
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {groupedSettings.seo?.map((setting) => (
-                  <div key={setting.key} className="space-y-2">
-                    <Label htmlFor={setting.key}>{setting.label}</Label>
-                    <Input
-                      id={setting.key}
-                      name={setting.key}
-                      defaultValue={setting.value}
-                    />
-                    {setting.description && (
-                      <p className="text-sm text-gray-500">
-                        {setting.description}
-                      </p>
-                    )}
-                  </div>
-                ))}
-                {(!groupedSettings.seo || groupedSettings.seo.length === 0) && (
-                  <p className="text-sm text-muted-foreground">
-                    No SEO settings found.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        <div className="mt-6">
-          <Button type="submit" size="lg" disabled={saving}>
-            <Save className="w-5 h-5 mr-2" />
-            {saving ? "Saving..." : "Save Settings"}
-          </Button>
+                <div className="mt-6 pt-4 border-t border-border">
+                  <Button type="submit" disabled={saving}>
+                    <Save className="h-4 w-4 mr-2" />
+                    {saving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

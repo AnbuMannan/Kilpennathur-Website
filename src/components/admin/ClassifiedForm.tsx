@@ -12,6 +12,8 @@ import type { ClassifiedActionState } from "@/app/admin/classifieds/actions";
 import { generateSlug } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AdminFormLayout } from "./AdminFormLayout";
+import { FormPreviewCard } from "./FormPreviewCard";
 
 /* ---------- Constants ---------- */
 
@@ -110,6 +112,9 @@ export function ClassifiedForm(props: ClassifiedFormProps) {
   const [selectedType, setSelectedType] = useState(
     item?.type ?? "real-estate",
   );
+  const [previewTitle, setPreviewTitle] = useState(item?.title ?? "");
+  const [previewPrice, setPreviewPrice] = useState(item?.price?.toString() ?? "");
+  const [previewStatus, setPreviewStatus] = useState(item?.status ?? "draft");
 
   const categories = CATEGORIES_BY_TYPE[selectedType] ?? [];
 
@@ -118,6 +123,7 @@ export function ClassifiedForm(props: ClassifiedFormProps) {
   }, [state?.error]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPreviewTitle(e.target.value);
     if (!slugTouched) setSlug(generateSlug(e.target.value));
   };
 
@@ -160,6 +166,20 @@ export function ClassifiedForm(props: ClassifiedFormProps) {
   };
 
   return (
+    <AdminFormLayout
+      preview={
+        <FormPreviewCard
+          title={previewTitle}
+          subtitle={selectedType}
+          statusLabel={previewStatus}
+          statusColor={previewStatus === "published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}
+          fields={[
+            { label: "Type", value: selectedType },
+            { label: "Price", value: previewPrice ? `₹${Number(previewPrice).toLocaleString("en-IN")}` : "" },
+          ]}
+        />
+      }
+    >
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
       {isEdit && item && <input type="hidden" name="id" value={item.id} />}
 
@@ -331,6 +351,7 @@ export function ClassifiedForm(props: ClassifiedFormProps) {
               min={0}
               step="0.01"
               defaultValue={item?.price ?? ""}
+              onChange={(e) => setPreviewPrice(e.target.value)}
               placeholder="e.g. 50000"
             />
           </div>
@@ -449,6 +470,7 @@ export function ClassifiedForm(props: ClassifiedFormProps) {
               id="status"
               name="status"
               defaultValue={item?.status ?? "draft"}
+              onChange={(e) => setPreviewStatus(e.target.value)}
               className={selectCls}
             >
               <option value="draft">Draft</option>
@@ -479,5 +501,6 @@ export function ClassifiedForm(props: ClassifiedFormProps) {
         </Button>
       </div>
     </form>
+    </AdminFormLayout>
   );
 }

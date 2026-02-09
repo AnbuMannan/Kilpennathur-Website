@@ -3,6 +3,7 @@ import { auth } from "@/app/api/auth/[...nextauth]/route";
 import { LogoutButton } from "./LogoutButton";
 import { AdminNav } from "./AdminNav";
 import { AdminSettingsLink } from "./AdminSettingsLink";
+import { AdminCommandSearch } from "@/components/admin/AdminCommandSearch";
 
 export default async function AdminLayout({
   children,
@@ -22,8 +23,11 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
-      <aside className="w-56 shrink-0 border-r border-border bg-card p-4 flex flex-col">
-        <h2 className="text-lg font-semibold mb-6">Kilpennathur Admin</h2>
+      <aside className="w-60 shrink-0 border-r border-border bg-card p-4 flex flex-col">
+        <h2 className="text-lg font-semibold mb-4">Kilpennathur Admin</h2>
+        <div className="mb-4">
+          <AdminCommandSearch />
+        </div>
         <AdminNav />
         <div className="mt-auto pt-4 flex flex-col gap-1">
           <AdminSettingsLink />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, startTransition } from "react";
+import { useActionState, useEffect, useState, startTransition } from "react";
 import Link from "next/link";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -8,6 +8,8 @@ import { createBusTiming, updateBusTiming } from "@/app/admin/utilities/bus/acti
 import type { BusActionState } from "@/app/admin/utilities/bus/actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AdminFormLayout } from "./AdminFormLayout";
+import { FormPreviewCard } from "./FormPreviewCard";
 
 /* ---------- Constants ---------- */
 
@@ -52,6 +54,10 @@ export function BusForm(props: BusFormProps) {
     null as BusActionState | null,
   );
 
+  const [previewRoute, setPreviewRoute] = useState(bus?.route ?? "");
+  const [previewBusType, setPreviewBusType] = useState(bus?.busType ?? "Town Bus");
+  const [previewTime, setPreviewTime] = useState(bus?.departureTime ?? "");
+
   useEffect(() => {
     if (state?.error) {
       toast.error(state.error);
@@ -85,6 +91,19 @@ export function BusForm(props: BusFormProps) {
   };
 
   return (
+    <AdminFormLayout
+      preview={
+        <FormPreviewCard
+          title={previewRoute || "Bus Route"}
+          statusLabel={previewBusType}
+          statusColor="bg-blue-100 text-blue-700"
+          fields={[
+            { label: "Departure", value: previewTime },
+            { label: "Type", value: previewBusType },
+          ]}
+        />
+      }
+    >
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
       {isEdit && bus && (
         <input type="hidden" name="id" value={bus.id} />
@@ -113,6 +132,7 @@ export function BusForm(props: BusFormProps) {
               required
               defaultValue={bus?.route ?? ""}
               placeholder="e.g., Kilpennathur to Tiruvannamalai"
+              onChange={(e) => setPreviewRoute(e.target.value)}
             />
             {state?.fieldErrors?.route && (
               <p className="mt-1 text-sm text-destructive">
@@ -161,6 +181,7 @@ export function BusForm(props: BusFormProps) {
               name="busType"
               required
               defaultValue={bus?.busType ?? "Town Bus"}
+              onChange={(e) => setPreviewBusType(e.target.value)}
               className={selectCls}
             >
               {BUS_TYPES.map((t) => (
@@ -185,6 +206,7 @@ export function BusForm(props: BusFormProps) {
               required
               defaultValue={bus?.departureTime ?? ""}
               placeholder="e.g., 08:30 AM"
+              onChange={(e) => setPreviewTime(e.target.value)}
             />
             {state?.fieldErrors?.departureTime && (
               <p className="mt-1 text-sm text-destructive">
@@ -205,5 +227,6 @@ export function BusForm(props: BusFormProps) {
         </Button>
       </div>
     </form>
+    </AdminFormLayout>
   );
 }

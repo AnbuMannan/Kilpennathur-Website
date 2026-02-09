@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { DeleteEventButton } from "./DeleteEventButton";
 import { EventsBulkActions } from "./EventsBulkActions";
+import { RowActions } from "@/components/admin/RowActions";
 
 type EventItem = {
   id: string;
@@ -37,88 +37,97 @@ export function EventsListWithBulk({ items }: { items: EventItem[] }) {
     }).format(date);
 
   return (
-    <div className="border border-border rounded-md overflow-hidden">
+    <div className="border border-border rounded-lg overflow-hidden">
       <EventsBulkActions
         selectedIds={Array.from(selected)}
         onClear={() => setSelected(new Set())}
       />
-      <table className="w-full text-left text-sm" style={{ tableLayout: "fixed" }}>
-        <colgroup>
-          <col style={{ width: "40px" }} />
-          <col style={{ width: "90px" }} />
-          <col style={{ width: "32%" }} />
-          <col style={{ width: "32%" }} />
-          <col style={{ width: "18%" }} />
-          <col style={{ width: "18%" }} />
-        </colgroup>
-        <thead className="bg-muted">
-          <tr>
-            <th className="px-3 py-3">
-              <input
-                type="checkbox"
-                checked={items.length > 0 && selected.size === items.length}
-                onChange={toggleAll}
-                aria-label="Select all"
-              />
-            </th>
-            <th className="px-3 py-3 font-semibold">Image</th>
-            <th className="px-3 py-3 font-semibold">Title (EN)</th>
-            <th className="px-3 py-3 font-semibold">Title (Tamil)</th>
-            <th className="px-3 py-3 font-semibold">Date</th>
-            <th className="px-3 py-3 font-semibold">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item) => (
-            <tr key={item.id} className="border-t border-border hover:bg-muted/50">
-              <td className="px-3 py-3">
+      <div className="max-h-[70vh] overflow-auto">
+        <table className="w-full text-left text-sm" style={{ tableLayout: "fixed" }}>
+          <colgroup>
+            <col style={{ width: "40px" }} />
+            <col style={{ width: "60px" }} />
+            <col style={{ width: "32%" }} />
+            <col style={{ width: "32%" }} />
+            <col style={{ width: "18%" }} />
+            <col style={{ width: "56px" }} />
+          </colgroup>
+          <thead className="bg-muted sticky top-0 z-10">
+            <tr>
+              <th className="px-3 py-3">
                 <input
                   type="checkbox"
-                  checked={selected.has(item.id)}
-                  onChange={() => toggle(item.id)}
-                  aria-label={`Select ${item.title}`}
+                  checked={items.length > 0 && selected.size === items.length}
+                  onChange={toggleAll}
+                  aria-label="Select all"
+                  className="rounded"
                 />
-              </td>
-              <td className="px-3 py-3 w-[90px] shrink-0">
-                {item.image ? (
-                  <img
-                    src={item.image}
-                    alt=""
-                    className="h-12 w-12 rounded object-cover shrink-0"
-                    width={48}
-                    height={48}
-                  />
-                ) : (
-                  <span className="text-muted-foreground text-xs">—</span>
-                )}
-              </td>
-              <td className="px-3 py-3 min-w-0">
-                <span className="block truncate" title={item.title}>
-                  {item.title}
-                </span>
-              </td>
-              <td className="px-3 py-3 min-w-0">
-                <span className="block truncate" title={item.titleTamil ?? ""}>
-                  {item.titleTamil ?? "—"}
-                </span>
-              </td>
-              <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
-                {formatDate(item.date)}
-              </td>
-              <td className="px-3 py-3 whitespace-nowrap">
-                <Link
-                  href={`/admin/events/edit/${item.id}`}
-                  className="text-primary hover:underline"
-                >
-                  Edit
-                </Link>
-                <span className="text-muted-foreground">|</span>
-                <DeleteEventButton id={item.id} />
-              </td>
+              </th>
+              <th className="px-3 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Img</th>
+              <th className="px-3 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Title (EN)</th>
+              <th className="px-3 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Title (Tamil)</th>
+              <th className="px-3 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Date</th>
+              <th className="px-3 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground"></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr key={item.id} className="border-t border-border hover:bg-muted/50 transition-colors">
+                <td className="px-3 py-2.5">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(item.id)}
+                    onChange={() => toggle(item.id)}
+                    aria-label={`Select ${item.title}`}
+                    className="rounded"
+                  />
+                </td>
+                <td className="px-3 py-2.5">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt=""
+                      className="h-10 w-10 rounded object-cover"
+                      width={40}
+                      height={40}
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded bg-muted flex items-center justify-center text-muted-foreground text-xs">
+                      —
+                    </div>
+                  )}
+                </td>
+                <td className="px-3 py-2.5 min-w-0">
+                  <span className="block truncate font-medium" title={item.title}>
+                    {item.title}
+                  </span>
+                </td>
+                <td className="px-3 py-2.5 min-w-0">
+                  <span className="block truncate text-muted-foreground" title={item.titleTamil ?? ""}>
+                    {item.titleTamil ?? "—"}
+                  </span>
+                </td>
+                <td className="px-3 py-2.5 text-muted-foreground whitespace-nowrap text-xs">
+                  {formatDate(item.date)}
+                </td>
+                <td className="px-3 py-2.5">
+                  <RowActions
+                    editUrl={`/admin/events/edit/${item.id}`}
+                    title={item.title}
+                    fields={[
+                      { label: "Title", value: item.title },
+                      { label: "Tamil Title", value: item.titleTamil },
+                      { label: "Date", value: formatDate(item.date) },
+                      { label: "Image", value: item.image, type: "image" },
+                    ]}
+                    deleteComponent={<DeleteEventButton id={item.id} />}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
