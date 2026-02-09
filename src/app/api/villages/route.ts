@@ -25,11 +25,21 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, nameTamil, slug: rawSlug, description } = body as {
+    const {
+      name, nameTamil, slug: rawSlug, description,
+      presidentName, presidentNameTamil, presidentImage,
+      population, totalStreets, wardCount,
+    } = body as {
       name?: string;
       nameTamil?: string;
       slug?: string;
       description?: string;
+      presidentName?: string;
+      presidentNameTamil?: string;
+      presidentImage?: string;
+      population?: number;
+      totalStreets?: number;
+      wardCount?: number;
     };
 
     const nameTrim = typeof name === "string" ? name.trim() : "";
@@ -76,6 +86,12 @@ export async function POST(request: Request) {
           typeof description === "string" && description.trim()
             ? description.trim()
             : undefined,
+        presidentName: typeof presidentName === "string" && presidentName.trim() ? presidentName.trim() : null,
+        presidentNameTamil: typeof presidentNameTamil === "string" && presidentNameTamil.trim() ? presidentNameTamil.trim() : null,
+        presidentImage: typeof presidentImage === "string" && presidentImage.trim() ? presidentImage.trim() : null,
+        population: typeof population === "number" ? population : null,
+        totalStreets: typeof totalStreets === "number" ? totalStreets : null,
+        wardCount: typeof wardCount === "number" ? wardCount : null,
       },
     });
     return NextResponse.json(village);

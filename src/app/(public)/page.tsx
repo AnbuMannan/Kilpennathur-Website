@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { NewsCard } from "@/components/frontend/NewsCard";
+import { JobCard } from "@/components/frontend/JobCard";
+import { ClassifiedCard } from "@/components/frontend/ClassifiedCard";
 import HeroSlider from "@/components/frontend/HeroSlider";
 import NewsletterSignup from "@/components/frontend/NewsletterSignup";
 import {
@@ -14,6 +17,11 @@ import {
   ArrowRight,
   Sparkles,
   Mail,
+  Bus,
+  Phone,
+  Landmark,
+  Briefcase,
+  ShoppingBag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,8 +90,22 @@ export default async function HomePage() {
   let newsCategories: Awaited<ReturnType<typeof prisma.category.findMany>> = [];
   let businessCategories: Awaited<ReturnType<typeof prisma.category.findMany>> = [];
   let upcomingEvents: Awaited<ReturnType<typeof prisma.event.findMany>> = [];
-  let stats = { newsCount: 0, businessCount: 0, villageCount: 0, eventCount: 0 };
+  let stats = {
+    newsCount: 0,
+    businessCount: 0,
+    villageCount: 0,
+    eventCount: 0,
+    jobCount: 0,
+    schemeCount: 0,
+    classifiedCount: 0,
+  };
   let newsCategoryCounts: { id: string; name: string; nameTamil: string | null; slug: string; type: string; postCount: number }[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let latestJobs: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let latestSchemes: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let latestClassifieds: any[] = [];
 
   try {
     const [
@@ -96,6 +118,12 @@ export default async function HomePage() {
       businessCount,
       villageCount,
       eventCount,
+      jobCount,
+      schemeCount,
+      classifiedCount,
+      jobs,
+      schemes,
+      classifieds,
     ] = await Promise.all([
       prisma.news.findMany({
         where: { status: "published" },
@@ -120,6 +148,24 @@ export default async function HomePage() {
       prisma.business.count(),
       prisma.village.count(),
       prisma.event.count(),
+      prisma.job.count({ where: { status: "published" } }),
+      (prisma as any).scheme.count({ where: { status: "published" } }),
+      (prisma as any).classified.count({ where: { status: "published" } }),
+      prisma.job.findMany({
+        where: { status: "published" },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+      }),
+      (prisma as any).scheme.findMany({
+        where: { status: "published" },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+      }),
+      (prisma as any).classified.findMany({
+        where: { status: "published" },
+        orderBy: { createdAt: "desc" },
+        take: 4,
+      }),
     ]);
 
     featuredNews = featured;
@@ -127,7 +173,10 @@ export default async function HomePage() {
     newsCategories = newsCats;
     businessCategories = businessCats;
     upcomingEvents = events;
-    stats = { newsCount, businessCount, villageCount, eventCount };
+    stats = { newsCount, businessCount, villageCount, eventCount, jobCount, schemeCount, classifiedCount };
+    latestJobs = jobs;
+    latestSchemes = schemes;
+    latestClassifieds = classifieds;
 
     newsCategoryCounts = await Promise.all(
       newsCats.map(async (c) => ({
@@ -174,49 +223,124 @@ export default async function HomePage() {
   ].slice(0, 6);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="bg-gray-50 dark:bg-gray-900">
       {/* Hero Slider */}
       <HeroSlider slides={sliderData} />
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-12 space-y-16">
-        {/* Stats Section */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 space-y-16">
+
+        {/* ══════════ Quick Services Strip ══════════ */}
+        <section>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <Link href="/bus-timings" className="group">
+              <Card className="text-center hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all hover:-translate-y-1">
+                <CardContent className="pt-5 pb-4">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mx-auto mb-3 group-hover:scale-110 transition-transform">
+                    <Bus className="w-6 h-6" />
+                  </div>
+                  <div className="font-semibold text-sm">Bus Timings</div>
+                  <div className="text-xs text-muted-foreground">பேருந்து நேரம்</div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/helplines" className="group">
+              <Card className="text-center hover:shadow-lg hover:border-red-300 dark:hover:border-red-600 transition-all hover:-translate-y-1">
+                <CardContent className="pt-5 pb-4">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 mx-auto mb-3 group-hover:scale-110 transition-transform">
+                    <Phone className="w-6 h-6" />
+                  </div>
+                  <div className="font-semibold text-sm">Helplines</div>
+                  <div className="text-xs text-muted-foreground">அவசர எண்கள்</div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/schemes" className="group">
+              <Card className="text-center hover:shadow-lg hover:border-emerald-300 dark:hover:border-emerald-600 transition-all hover:-translate-y-1">
+                <CardContent className="pt-5 pb-4">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mx-auto mb-3 group-hover:scale-110 transition-transform">
+                    <Landmark className="w-6 h-6" />
+                  </div>
+                  <div className="font-semibold text-sm">Schemes</div>
+                  <div className="text-xs text-muted-foreground">அரசு திட்டங்கள்</div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/jobs" className="group">
+              <Card className="text-center hover:shadow-lg hover:border-amber-300 dark:hover:border-amber-600 transition-all hover:-translate-y-1">
+                <CardContent className="pt-5 pb-4">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 text-amber-600 mx-auto mb-3 group-hover:scale-110 transition-transform">
+                    <Briefcase className="w-6 h-6" />
+                  </div>
+                  <div className="font-semibold text-sm">Jobs</div>
+                  <div className="text-xs text-muted-foreground">வேலைகள்</div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </section>
+
+        {/* ══════════ Stats Section ══════════ */}
+        <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
           <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <Newspaper className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground">{stats.newsCount}</div>
-              <div className="text-sm text-muted-foreground">News Articles</div>
-              <div className="text-xs text-muted-foreground/80 mt-1">செய்திகள்</div>
+            <CardContent className="pt-5 pb-4">
+              <Newspaper className="w-10 h-10 text-blue-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground">{stats.newsCount}</div>
+              <div className="text-xs text-muted-foreground">News</div>
+              <div className="text-[10px] text-muted-foreground/80">செய்திகள்</div>
             </CardContent>
           </Card>
           <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <Building2 className="w-12 h-12 text-purple-600 mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground">{stats.businessCount}</div>
-              <div className="text-sm text-muted-foreground">Businesses</div>
-              <div className="text-xs text-muted-foreground/80 mt-1">வணிகங்கள்</div>
+            <CardContent className="pt-5 pb-4">
+              <Building2 className="w-10 h-10 text-purple-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground">{stats.businessCount}</div>
+              <div className="text-xs text-muted-foreground">Businesses</div>
+              <div className="text-[10px] text-muted-foreground/80">வணிகங்கள்</div>
             </CardContent>
           </Card>
           <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <MapPin className="w-12 h-12 text-teal-600 mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground">{stats.villageCount}</div>
-              <div className="text-sm text-muted-foreground">Villages</div>
-              <div className="text-xs text-muted-foreground/80 mt-1">கிராமங்கள்</div>
+            <CardContent className="pt-5 pb-4">
+              <MapPin className="w-10 h-10 text-teal-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground">{stats.villageCount}</div>
+              <div className="text-xs text-muted-foreground">Villages</div>
+              <div className="text-[10px] text-muted-foreground/80">கிராமங்கள்</div>
             </CardContent>
           </Card>
           <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <Calendar className="w-12 h-12 text-orange-600 mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground">{stats.eventCount}</div>
-              <div className="text-sm text-muted-foreground">Events</div>
-              <div className="text-xs text-muted-foreground/80 mt-1">நிகழ்வுகள்</div>
+            <CardContent className="pt-5 pb-4">
+              <Calendar className="w-10 h-10 text-orange-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground">{stats.eventCount}</div>
+              <div className="text-xs text-muted-foreground">Events</div>
+              <div className="text-[10px] text-muted-foreground/80">நிகழ்வுகள்</div>
+            </CardContent>
+          </Card>
+          <Card className="text-center hover:shadow-lg transition-shadow">
+            <CardContent className="pt-5 pb-4">
+              <Briefcase className="w-10 h-10 text-amber-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground">{stats.jobCount}</div>
+              <div className="text-xs text-muted-foreground">Jobs</div>
+              <div className="text-[10px] text-muted-foreground/80">வேலைகள்</div>
+            </CardContent>
+          </Card>
+          <Card className="text-center hover:shadow-lg transition-shadow">
+            <CardContent className="pt-5 pb-4">
+              <Landmark className="w-10 h-10 text-emerald-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground">{stats.schemeCount}</div>
+              <div className="text-xs text-muted-foreground">Schemes</div>
+              <div className="text-[10px] text-muted-foreground/80">திட்டங்கள்</div>
+            </CardContent>
+          </Card>
+          <Card className="text-center hover:shadow-lg transition-shadow">
+            <CardContent className="pt-5 pb-4">
+              <ShoppingBag className="w-10 h-10 text-pink-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground">{stats.classifiedCount}</div>
+              <div className="text-xs text-muted-foreground">Classifieds</div>
+              <div className="text-[10px] text-muted-foreground/80">விளம்பரங்கள்</div>
             </CardContent>
           </Card>
         </section>
 
-        {/* Latest News Section */}
+        {/* ══════════ Latest News Section ══════════ */}
         <section>
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -255,7 +379,169 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* News Categories Section */}
+        {/* ══════════ Government Schemes Section ══════════ */}
+        {latestSchemes.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                  <Landmark className="w-8 h-8 text-emerald-600" />
+                  Government Schemes
+                </h2>
+                <p className="text-muted-foreground text-lg">அரசு திட்டங்கள்</p>
+              </div>
+              <Link href="/schemes">
+                <Button variant="outline" className="gap-2">
+                  View All Schemes
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {latestSchemes.map((scheme) => (
+                <Link key={scheme.id} href={`/schemes?search=${encodeURIComponent(scheme.title)}`}>
+                  <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 border-l-4 border-l-emerald-500">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="outline" className="text-xs">
+                          {scheme.sponsor}
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {scheme.beneficiaryType}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-lg line-clamp-2">{scheme.title}</CardTitle>
+                      {scheme.titleTamil && (
+                        <p className="text-sm text-muted-foreground line-clamp-1">
+                          {scheme.titleTamil}
+                        </p>
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {scheme.description}
+                      </p>
+                      {scheme.applicationLink && (
+                        <span className="inline-flex items-center gap-1 text-sm text-emerald-600 font-medium mt-3">
+                          Apply Now <ArrowRight className="w-3.5 h-3.5" />
+                        </span>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ══════════ Jobs & Classifieds Split Section ══════════ */}
+        {(latestJobs.length > 0 || latestClassifieds.length > 0) && (
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Column: Latest Jobs */}
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold mb-1 flex items-center gap-2">
+                    <Briefcase className="w-6 h-6 text-amber-600" />
+                    Latest Jobs
+                  </h2>
+                  <p className="text-muted-foreground text-sm">சமீபத்திய வேலைகள்</p>
+                </div>
+                <Link href="/jobs">
+                  <Button variant="ghost" size="sm" className="gap-1 text-sm">
+                    View All <ArrowRight className="w-3.5 h-3.5" />
+                  </Button>
+                </Link>
+              </div>
+
+              {latestJobs.length > 0 ? (
+                <div className="space-y-4">
+                  {latestJobs.map((job) => (
+                    <JobCard
+                      key={job.id}
+                      job={{
+                        id: job.id,
+                        title: job.title,
+                        titleTamil: job.titleTamil,
+                        company: job.company,
+                        companyTamil: job.companyTamil,
+                        location: job.location,
+                        locationTamil: job.locationTamil,
+                        jobType: job.jobType,
+                        category: job.category,
+                        salaryDescription: job.salaryDescription,
+                        applicationDeadline: job.applicationDeadline,
+                        applicationUrl: job.applicationUrl,
+                        publishedAt: job.publishedAt,
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <Card className="text-center py-8">
+                  <CardContent>
+                    <Briefcase className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">No jobs posted yet</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Right Column: Marketplace / Classifieds */}
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold mb-1 flex items-center gap-2">
+                    <ShoppingBag className="w-6 h-6 text-pink-600" />
+                    Marketplace
+                  </h2>
+                  <p className="text-muted-foreground text-sm">சந்தை</p>
+                </div>
+                <Link href="/classifieds">
+                  <Button variant="ghost" size="sm" className="gap-1 text-sm">
+                    View All <ArrowRight className="w-3.5 h-3.5" />
+                  </Button>
+                </Link>
+              </div>
+
+              {latestClassifieds.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {latestClassifieds.map((item) => (
+                    <ClassifiedCard
+                      key={item.id}
+                      classified={{
+                        id: item.id,
+                        type: item.type,
+                        category: item.category,
+                        title: item.title,
+                        titleTamil: item.titleTamil,
+                        description: item.description,
+                        descriptionTamil: item.descriptionTamil,
+                        price: item.price,
+                        priceLabel: item.priceLabel,
+                        contactName: item.contactName,
+                        contactPhone: item.contactPhone,
+                        location: item.location,
+                        images: item.images,
+                        isFeatured: item.isFeatured,
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <Card className="text-center py-8">
+                  <CardContent>
+                    <ShoppingBag className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">No classifieds posted yet</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* ══════════ News Categories Section ══════════ */}
         <section>
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold mb-2">Explore by Category</h2>
@@ -282,8 +568,8 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Business Directory Preview */}
-        <section className="bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-800 dark:to-purple-900 rounded-2xl p-8 text-white">
+        {/* ══════════ Business Directory Preview ══════════ */}
+        <section className="bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-800 dark:to-purple-900 rounded-2xl p-6 md:p-8 text-white">
           <div className="text-center mb-8">
             <Building2 className="w-16 h-16 mx-auto mb-4" />
             <h2 className="text-3xl font-bold mb-2">Business Directory</h2>
@@ -318,7 +604,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Upcoming Events Section */}
+        {/* ══════════ Upcoming Events Section ══════════ */}
         {upcomingEvents.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-8">
@@ -368,7 +654,7 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* Quick Access Section */}
+        {/* ══════════ Quick Access Section ══════════ */}
         <section>
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold mb-2">Quick Access</h2>
@@ -424,7 +710,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Newsletter Signup */}
+        {/* ══════════ Newsletter Signup ══════════ */}
         <section className="py-12">
           <NewsletterSignup />
         </section>

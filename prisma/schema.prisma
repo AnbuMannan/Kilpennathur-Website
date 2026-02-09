@@ -98,13 +98,19 @@ model Business {
    --------------------------------------------------------------------------- */
 
 model Village {
-  id          String   @id @default(cuid())
-  name        String
-  nameTamil   String
-  slug        String   @unique
-  description String?  @db.Text
-  image       String?
-  createdAt   DateTime @default(now())
+  id                 String   @id @default(cuid())
+  name               String
+  nameTamil          String
+  slug               String   @unique
+  description        String?  @db.Text
+  image              String?
+  presidentName      String?
+  presidentNameTamil String?
+  presidentImage     String?
+  population         Int?
+  totalStreets       Int?
+  wardCount          Int?
+  createdAt          DateTime @default(now())
 
   // Indexes
   @@index([slug])
@@ -175,6 +181,98 @@ model Job {
   @@index([category])
   @@index([jobType])
   @@index([publishedAt])
+}
+
+/* ---------------------------------------------------------------------------
+   Government Schemes (Arasu Thittangal)
+   --------------------------------------------------------------------------- */
+
+model Scheme {
+  id               String   @id @default(cuid())
+  title            String
+  titleTamil       String?
+  slug             String   @unique
+  description      String   @db.Text
+  descriptionTamil String?  @db.Text
+  sponsor          String   // "Central Govt", "State Govt", "District"
+  beneficiaryType  String   // "Farmers", "Students", "Women", "Senior Citizens", "General"
+  applicationLink  String?
+  status           String   @default("draft") // draft, published
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Indexes
+  @@index([slug])
+  @@index([status])
+  @@index([sponsor])
+  @@index([beneficiaryType])
+}
+
+/* ---------------------------------------------------------------------------
+   Classifieds & Marketplace
+   --------------------------------------------------------------------------- */
+
+model Classified {
+  id               String   @id @default(cuid())
+  type             String   // "real-estate", "marketplace", "service"
+  category         String   // "Land for Sale", "House for Rent", "Bike", "Electronics", etc.
+  title            String
+  titleTamil       String?
+  slug             String   @unique
+  description      String   @db.Text
+  descriptionTamil String?  @db.Text
+  price            Float?
+  priceLabel       String?  // "per cent", "negotiable", "per month", "fixed"
+  contactName      String
+  contactPhone     String
+  location         String?
+  images           String   @default("") // comma-separated URLs
+  status           String   @default("draft") // draft, published
+  isFeatured       Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Indexes
+  @@index([slug])
+  @@index([status])
+  @@index([type])
+  @@index([category])
+  @@index([isFeatured])
+}
+
+/* ---------------------------------------------------------------------------
+   Public Utilities — Bus Timings
+   --------------------------------------------------------------------------- */
+
+model BusTiming {
+  id            String   @id @default(cuid())
+  route         String   // "Kilpennathur to Tiruvannamalai"
+  routeTamil    String?
+  busNumber     String?
+  busType       String   // "Town Bus", "Private", "SETC"
+  departureTime String   // "08:30 AM"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Indexes
+  @@index([busType])
+}
+
+/* ---------------------------------------------------------------------------
+   Public Utilities — Emergency Helplines
+   --------------------------------------------------------------------------- */
+
+model Helpline {
+  id         String   @id @default(cuid())
+  title      String   // "Police Station"
+  titleTamil String?
+  number     String
+  category   String   // "Emergency", "Medical", "EB", "Panchayat"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Indexes
+  @@index([category])
 }
 
 /* ---------------------------------------------------------------------------

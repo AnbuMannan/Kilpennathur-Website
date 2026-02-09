@@ -38,6 +38,12 @@ export default async function AdminVillageEditPage({
           nameTamil: village.nameTamil,
           slug: village.slug,
           description: village.description,
+          presidentName: village.presidentName,
+          presidentNameTamil: village.presidentNameTamil,
+          presidentImage: village.presidentImage,
+          population: village.population,
+          totalStreets: village.totalStreets,
+          wardCount: village.wardCount,
         }}
       />
     </div>

@@ -40,6 +40,17 @@ export async function createVillage(
     return { fieldErrors: { slug: "This slug is already in use." } };
   }
 
+  // Optional new fields
+  const presidentName = (formData.get("presidentName") as string)?.trim() || null;
+  const presidentNameTamil = (formData.get("presidentNameTamil") as string)?.trim() || null;
+  const presidentImage = (formData.get("presidentImage") as string)?.trim() || null;
+  const populationRaw = (formData.get("population") as string)?.trim();
+  const totalStreetsRaw = (formData.get("totalStreets") as string)?.trim();
+  const wardCountRaw = (formData.get("wardCount") as string)?.trim();
+  const population = populationRaw ? parseInt(populationRaw, 10) : null;
+  const totalStreets = totalStreetsRaw ? parseInt(totalStreetsRaw, 10) : null;
+  const wardCount = wardCountRaw ? parseInt(wardCountRaw, 10) : null;
+
   try {
     await prisma.village.create({
       data: {
@@ -47,6 +58,12 @@ export async function createVillage(
         nameTamil,
         slug,
         description: (formData.get("description") as string)?.trim() || undefined,
+        presidentName,
+        presidentNameTamil,
+        presidentImage,
+        population: Number.isNaN(population!) ? null : population,
+        totalStreets: Number.isNaN(totalStreets!) ? null : totalStreets,
+        wardCount: Number.isNaN(wardCount!) ? null : wardCount,
       },
     });
   } catch (err) {
@@ -103,6 +120,17 @@ export async function updateVillage(
     return { fieldErrors: { slug: "This slug is already in use." } };
   }
 
+  // Optional new fields
+  const presidentName = (formData.get("presidentName") as string)?.trim() || null;
+  const presidentNameTamil = (formData.get("presidentNameTamil") as string)?.trim() || null;
+  const presidentImage = (formData.get("presidentImage") as string)?.trim() || null;
+  const populationRaw = (formData.get("population") as string)?.trim();
+  const totalStreetsRaw = (formData.get("totalStreets") as string)?.trim();
+  const wardCountRaw = (formData.get("wardCount") as string)?.trim();
+  const population = populationRaw ? parseInt(populationRaw, 10) : null;
+  const totalStreets = totalStreetsRaw ? parseInt(totalStreetsRaw, 10) : null;
+  const wardCount = wardCountRaw ? parseInt(wardCountRaw, 10) : null;
+
   try {
     await prisma.village.update({
       where: { id },
@@ -111,6 +139,12 @@ export async function updateVillage(
         nameTamil,
         slug,
         description: (formData.get("description") as string)?.trim() || undefined,
+        presidentName,
+        presidentNameTamil,
+        presidentImage,
+        population: Number.isNaN(population!) ? null : population,
+        totalStreets: Number.isNaN(totalStreets!) ? null : totalStreets,
+        wardCount: Number.isNaN(wardCount!) ? null : wardCount,
       },
     });
   } catch (err) {

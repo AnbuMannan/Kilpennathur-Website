@@ -9,7 +9,7 @@ import Pagination from "@/components/frontend/Pagination";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Search } from "lucide-react";
+import { MapPin, Search, Users } from "lucide-react";
 
 /** Next.js can pass searchParams values as string | string[]; normalize to string. */
 function toStr(v: string | string[] | undefined): string {
@@ -77,38 +77,37 @@ export default async function VillagesPage({ searchParams }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Full-width Hero Section */}
-      <div className="relative h-80 md:h-96 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-teal-600 via-green-600 to-emerald-700" aria-hidden />
+      {/* ── Compact Hero ── */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center opacity-15"
           style={{ backgroundImage: `url('/images/villages-hero.jpg')` }}
           aria-hidden
         />
-        <div
-          className="absolute inset-0 bg-gradient-to-r from-teal-900/50 via-teal-800/55 to-green-900/50 backdrop-blur-[2px]"
-          aria-hidden
-        />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4">
-          <MapPin className="w-12 h-12 mb-4 animate-pulse" aria-hidden />
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Our Villages</h1>
-          <p className="text-xl md:text-2xl mb-2">எங்கள் கிராமங்கள்</p>
-          <p className="text-base md:text-lg text-teal-100 text-center max-w-3xl">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/80" aria-hidden />
+        <div className="relative max-w-7xl mx-auto px-4 py-14 md:py-20 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-300 text-xs font-semibold uppercase tracking-widest mb-5">
+            <MapPin className="w-3.5 h-3.5" aria-hidden />
+            Villages
+          </div>
+          <h1 className="font-serif text-4xl md:text-5xl font-bold text-white tracking-tight">
+            Our Villages
+          </h1>
+          <p className="mt-2 font-tamil text-xl md:text-2xl text-teal-200/80">
+            எங்கள் கிராமங்கள்
+          </p>
+          <p className="mt-3 text-sm md:text-base text-slate-300 max-w-2xl mx-auto">
             Explore villages in and around Kilpennathur and surrounding areas.
           </p>
-          <div className="mt-4">
-            <Badge variant="secondary" className="text-base px-4 py-1.5">
+          <div className="mt-5">
+            <Badge variant="secondary" className="text-sm px-4 py-1.5">
               {totalCount} villages listed
             </Badge>
           </div>
         </div>
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none" aria-hidden>
-          <div className="absolute top-10 right-10 w-40 h-40 bg-green-400/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 left-10 w-48 h-48 bg-teal-400/20 rounded-full blur-3xl" />
-        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 py-10">
         <Breadcrumbs items={[{ label: "Our Villages" }]} />
 
         {/* Search */}
@@ -157,7 +156,7 @@ export default async function VillagesPage({ searchParams }: Props) {
             {letters.map((letter) => (
               <div key={letter} className="mb-10">
                 <h2
-                  className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900 py-2 text-2xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 mb-4"
+                  className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900 py-3 font-serif text-2xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 mb-5"
                   id={`letter-${letter}`}
                 >
                   {letter}
@@ -172,6 +171,12 @@ export default async function VillagesPage({ searchParams }: Props) {
                         nameTamil: village.nameTamil,
                         slug: village.slug,
                         description: village.description,
+                        image: village.image,
+                        population: village.population,
+                        wardCount: village.wardCount,
+                        presidentName: village.presidentName,
+                        presidentNameTamil: village.presidentNameTamil,
+                        totalStreets: village.totalStreets,
                       }}
                     />
                   ))}

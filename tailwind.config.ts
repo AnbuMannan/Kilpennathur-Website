@@ -59,7 +59,9 @@ const config: Config = {
         ring: "var(--ring)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-inter)", "var(--font-tamil)", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "var(--font-tamil)", "Georgia", "serif"],
+        tamil: ["var(--font-tamil)", "sans-serif"],
       },
       fontSize: {
         xs: ["0.75rem", { lineHeight: "1rem" }],

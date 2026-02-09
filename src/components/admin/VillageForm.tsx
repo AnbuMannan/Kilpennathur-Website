@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, startTransition } from "react";
 import Link from "next/link";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -26,6 +26,12 @@ export type VillageForEdit = {
   nameTamil: string;
   slug: string;
   description: string | null;
+  presidentName: string | null;
+  presidentNameTamil: string | null;
+  presidentImage: string | null;
+  population: number | null;
+  totalStreets: number | null;
+  wardCount: number | null;
 };
 
 type VillageFormProps =
@@ -82,7 +88,9 @@ export function VillageForm(props: VillageFormProps) {
       toast.error(msg);
       return;
     }
-    await formAction(state, formData);
+    startTransition(() => {
+      formAction(formData);
+    });
   };
 
   return (
@@ -173,6 +181,111 @@ export function VillageForm(props: VillageFormProps) {
           placeholder="Optional village description..."
         />
       </div>
+
+      {/* President Information */}
+      <fieldset className="space-y-4 rounded-lg border border-border p-4">
+        <legend className="px-2 text-sm font-semibold text-foreground">
+          Village President / Panchayat Leader
+        </legend>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="presidentName" className="mb-1 block text-sm font-medium">
+              President Name (English)
+            </label>
+            <Input
+              id="presidentName"
+              name="presidentName"
+              type="text"
+              defaultValue={village?.presidentName ?? ""}
+              placeholder="e.g. Ramesh Kumar"
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label htmlFor="presidentNameTamil" className="mb-1 block text-sm font-medium">
+              President Name (Tamil)
+            </label>
+            <Input
+              id="presidentNameTamil"
+              name="presidentNameTamil"
+              type="text"
+              defaultValue={village?.presidentNameTamil ?? ""}
+              placeholder="e.g. ரமேஷ் குமார்"
+              className="w-full"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="presidentImage" className="mb-1 block text-sm font-medium">
+            President Photo URL
+          </label>
+          <Input
+            id="presidentImage"
+            name="presidentImage"
+            type="url"
+            defaultValue={village?.presidentImage ?? ""}
+            placeholder="https://..."
+            className="w-full"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Direct URL to the president&apos;s photo (upload via Media first).
+          </p>
+        </div>
+      </fieldset>
+
+      {/* Village Statistics */}
+      <fieldset className="space-y-4 rounded-lg border border-border p-4">
+        <legend className="px-2 text-sm font-semibold text-foreground">
+          Village Statistics
+        </legend>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label htmlFor="population" className="mb-1 block text-sm font-medium">
+              Population
+            </label>
+            <Input
+              id="population"
+              name="population"
+              type="number"
+              min={0}
+              defaultValue={village?.population ?? ""}
+              placeholder="e.g. 5000"
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label htmlFor="totalStreets" className="mb-1 block text-sm font-medium">
+              Total Streets
+            </label>
+            <Input
+              id="totalStreets"
+              name="totalStreets"
+              type="number"
+              min={0}
+              defaultValue={village?.totalStreets ?? ""}
+              placeholder="e.g. 12"
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label htmlFor="wardCount" className="mb-1 block text-sm font-medium">
+              Ward Count
+            </label>
+            <Input
+              id="wardCount"
+              name="wardCount"
+              type="number"
+              min={0}
+              defaultValue={village?.wardCount ?? ""}
+              placeholder="e.g. 4"
+              className="w-full"
+            />
+          </div>
+        </div>
+      </fieldset>
 
       <div className="flex gap-3 pt-2">
         <Button type="submit">

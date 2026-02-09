@@ -1,14 +1,9 @@
 import type { ReactNode } from "react";
-import { Inter } from "next/font/google";
 import type { Metadata } from "next";
 import { Header } from "@/components/frontend/Header";
 import { Footer } from "@/components/frontend/Footer";
 import { BackToTop } from "@/components/frontend/BackToTop";
 import { WhatsAppFloat } from "@/components/frontend/WhatsAppFloat";
-
-const inter = Inter({
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Kilpennathur - Community News & Information Portal",
@@ -26,12 +21,12 @@ export const metadata: Metadata = {
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <div className={inter.className}>
+    <>
       <Header />
-      <main className="min-h-screen bg-gray-50">{children}</main>
+      <main className="bg-gray-50 dark:bg-gray-900">{children}</main>
       <Footer />
       <WhatsAppFloat />
       <BackToTop />
-    </div>
+    </>
   );
 }

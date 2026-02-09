@@ -3,7 +3,7 @@ import { JobForm } from "@/components/admin/JobForm";
 
 export default function AdminJobCreatePage() {
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       <div className="mb-6">
         <Link
           href="/admin/jobs"

@@ -17,7 +17,7 @@ export default async function AdminJobEditPage({
   if (!job) notFound();
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       <div className="mb-6">
         <Link
           href="/admin/jobs"

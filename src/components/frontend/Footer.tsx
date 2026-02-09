@@ -28,6 +28,14 @@ const QUICK_LINKS = [
   { label: "Contact Us", href: "/contact" },
 ] as const;
 
+const SERVICES_LINKS = [
+  { label: "Jobs", href: "/jobs" },
+  { label: "Classifieds", href: "/classifieds" },
+  { label: "Bus Timings", href: "/bus-timings" },
+  { label: "Government Schemes", href: "/schemes" },
+  { label: "Helplines", href: "/helplines" },
+] as const;
+
 const NEWS_CATEGORIES = [
   { label: "Breaking News", href: "/news?category=breaking" },
   { label: "Health", href: "/news?category=health" },
@@ -46,9 +54,9 @@ export function Footer() {
           <NewsletterSignup />
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           {/* About column */}
-          <div>
+          <div className="lg:col-span-1">
             <Link
               href="/"
               className="inline-block text-xl font-bold text-white hover:text-blue-400 transition-colors mb-4"
@@ -82,6 +90,25 @@ export function Footer() {
             </h3>
             <ul className="space-y-2">
               {QUICK_LINKS.map(({ label, href }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="text-slate-300 text-sm hover:text-blue-400 transition-colors"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Services & Community column */}
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-200 mb-4">
+              Services
+            </h3>
+            <ul className="space-y-2">
+              {SERVICES_LINKS.map(({ label, href }) => (
                 <li key={href}>
                   <Link
                     href={href}

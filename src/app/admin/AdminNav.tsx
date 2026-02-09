@@ -10,10 +10,13 @@ import {
   Building2,
   MapPin,
   Briefcase,
+  Landmark,
+  ShoppingBag,
   FolderOpen,
   Mail,
   Users,
   ImagePlus,
+  Bus,
 } from "lucide-react";
 import { canAccessSection } from "@/lib/adminRoles";
 import type { AdminRole } from "@/lib/adminRoles";
@@ -25,6 +28,9 @@ const navLinks: { href: string; label: string; icon: typeof LayoutDashboard; rol
   { href: "/admin/jobs", label: "Jobs", icon: Briefcase, role: "editor" },
   { href: "/admin/business", label: "Business", icon: Building2, role: "editor" },
   { href: "/admin/villages", label: "Villages", icon: MapPin, role: "editor" },
+  { href: "/admin/schemes", label: "Schemes", icon: Landmark, role: "editor" },
+  { href: "/admin/classifieds", label: "Classifieds", icon: ShoppingBag, role: "editor" },
+  { href: "/admin/utilities", label: "Utilities", icon: Bus, role: "editor" },
   { href: "/admin/categories", label: "Categories", icon: FolderOpen, role: "admin" },
   { href: "/admin/contact", label: "Contact", icon: Mail, role: "admin" },
   { href: "/admin/newsletter", label: "Newsletter", icon: Users, role: "admin" },

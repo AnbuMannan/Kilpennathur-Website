@@ -45,9 +45,14 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
   if (slides.length === 0) {
     return (
       <div className="relative h-[500px] bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center">
-        <div className="text-center text-white">
-          <h1 className="text-5xl font-bold mb-4">Welcome to Kilpennathur</h1>
-          <p className="text-2xl">கீழ்பென்னாத்தூர் வரவேற்கிறது</p>
+        <div className="text-center text-white px-4">
+          <h1
+            className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4"
+            style={{ textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
+          >
+            Welcome to Kilpennathur
+          </h1>
+          <p className="text-2xl md:text-3xl font-medium text-blue-100">கீழ்பென்னாத்தூர் வரவேற்கிறது</p>
         </div>
       </div>
     );
@@ -82,19 +87,25 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
           <div className="absolute inset-0 bg-black/50" />
 
           <div className="absolute inset-0 flex items-center">
-            <div className="max-w-7xl mx-auto px-4 w-full">
-              <div className="max-w-2xl">
-                <h2 className="text-4xl md:text-6xl font-bold text-white mb-4">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 w-full">
+              <div className="max-w-2xl space-y-4">
+                <h2
+                  className="text-4xl md:text-6xl font-extrabold tracking-tight text-white"
+                  style={{ textShadow: "0 2px 8px rgba(0,0,0,0.4)" }}
+                >
                   {slide.title}
                 </h2>
-                <p className="text-2xl md:text-3xl text-blue-100 mb-4">
+                <p
+                  className="text-2xl md:text-3xl text-blue-100 font-medium"
+                  style={{ textShadow: "0 1px 6px rgba(0,0,0,0.3)" }}
+                >
                   {slide.titleTamil}
                 </p>
-                <p className="text-lg md:text-xl text-white mb-8">
+                <p className="text-lg md:text-xl text-white/90 leading-relaxed mb-6">
                   {slide.description}
                 </p>
                 <Link href={slide.link}>
-                  <Button size="lg">Read More</Button>
+                  <Button size="lg" className="mt-2">Read More</Button>
                 </Link>
               </div>
             </div>
