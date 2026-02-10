@@ -9,7 +9,7 @@ import { deleteImageByUrl } from "@/lib/supabaseServer";
 
 export type CreateNewsState = {
   error?: string;
-  fieldErrors?: { title?: string; content?: string; categoryId?: string };
+  fieldErrors?: { title?: string; content?: string; categoryId?: string; slug?: string };
 };
 
 export async function createNews(
@@ -19,9 +19,15 @@ export async function createNews(
   const title = (formData.get("title") as string)?.trim();
   const titleTamil = (formData.get("titleTamil") as string)?.trim() || null;
   const content = (formData.get("content") as string)?.trim();
+  const contentTamil = (formData.get("contentTamil") as string)?.trim() || null;
+  const excerpt = (formData.get("excerpt") as string)?.trim() || null;
   const categoryId = (formData.get("categoryId") as string)?.trim();
   const imageUrl = (formData.get("imageUrl") as string)?.trim() || null;
-  const isPublished = formData.get("isPublished") === "on";
+  const tags = (formData.get("tags") as string)?.trim() || "";
+  const whatsappLink = (formData.get("whatsappLink") as string)?.trim() || null;
+  const referenceUrl = (formData.get("referenceUrl") as string)?.trim() || null;
+  const status = (formData.get("status") as string)?.trim() || "draft";
+  const slugInput = (formData.get("slug") as string)?.trim() || "";
 
   const fieldErrors: CreateNewsState["fieldErrors"] = {};
   if (!title) fieldErrors.title = "Title is required";
@@ -44,11 +50,13 @@ export async function createNews(
     return { error: "Invalid category." };
   }
 
-  let slug = generateSlug(title);
-  const existing = await prisma.news.findUnique({ where: { slug } });
-  if (existing) {
+  let slug = slugInput || generateSlug(title);
+  const existingSlug = await prisma.news.findUnique({ where: { slug } });
+  if (existingSlug) {
     slug = `${slug}-${Date.now()}`;
   }
+
+  const isPublished = status === "published";
 
   try {
     await prisma.news.create({
@@ -57,8 +65,13 @@ export async function createNews(
         titleTamil: titleTamil || undefined,
         slug,
         content,
+        contentTamil: contentTamil || undefined,
+        excerpt: excerpt || undefined,
         image: imageUrl || undefined,
         category: category.name,
+        tags,
+        whatsappLink: whatsappLink || undefined,
+        referenceUrl: referenceUrl || undefined,
         status: isPublished ? "published" : "draft",
         publishedAt: isPublished ? new Date() : null,
         authorId: userId,
@@ -76,7 +89,7 @@ export async function createNews(
 
 export type UpdateNewsState = {
   error?: string;
-  fieldErrors?: { title?: string; content?: string; categoryId?: string };
+  fieldErrors?: { title?: string; content?: string; categoryId?: string; slug?: string };
 };
 
 export async function updateNews(
@@ -89,9 +102,14 @@ export async function updateNews(
   const title = (formData.get("title") as string)?.trim();
   const titleTamil = (formData.get("titleTamil") as string)?.trim() || null;
   const content = (formData.get("content") as string)?.trim();
+  const contentTamil = (formData.get("contentTamil") as string)?.trim() || null;
+  const excerpt = (formData.get("excerpt") as string)?.trim() || null;
   const categoryId = (formData.get("categoryId") as string)?.trim();
   const imageUrl = (formData.get("imageUrl") as string)?.trim() || null;
-  const isPublished = formData.get("isPublished") === "on";
+  const tags = (formData.get("tags") as string)?.trim() || "";
+  const whatsappLink = (formData.get("whatsappLink") as string)?.trim() || null;
+  const referenceUrl = (formData.get("referenceUrl") as string)?.trim() || null;
+  const status = (formData.get("status") as string)?.trim() || "draft";
 
   const fieldErrors: UpdateNewsState["fieldErrors"] = {};
   if (!title) fieldErrors.title = "Title is required";
@@ -128,6 +146,8 @@ export async function updateNews(
     }
   }
 
+  const isPublished = status === "published";
+
   try {
     await prisma.news.update({
       where: { id },
@@ -135,8 +155,13 @@ export async function updateNews(
         title,
         titleTamil: titleTamil || undefined,
         content,
+        contentTamil: contentTamil || undefined,
+        excerpt: excerpt || undefined,
         image: imageUrl || undefined,
         category: category.name,
+        tags,
+        whatsappLink: whatsappLink || undefined,
+        referenceUrl: referenceUrl || undefined,
         status: isPublished ? "published" : "draft",
         publishedAt: isPublished ? (existing.publishedAt ?? new Date()) : null,
       },

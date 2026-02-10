@@ -219,6 +219,21 @@
     "hoursSaturdayTime": "9:00 AM - 2:00 PM",
     "phoneHours": "Mon - Sat: 9:00 AM - 6:00 PM"
   },
+  "professionalServices": {
+    "title": "Our Services",
+    "description": "Professional services offered in Kilpennathur — Insurance, GST filing, Tax consulting, and more.",
+    "readUpdate": "Read Update",
+    "contactForService": "Contact for Service",
+    "latestUpdates": "Latest Updates",
+    "allServices": "All Services",
+    "getConsultation": "Get a Free Consultation",
+    "callUs": "Call Us",
+    "whatsapp": "WhatsApp",
+    "chatNow": "Chat Now",
+    "noUpdatesYet": "No updates posted yet. Check back soon!",
+    "comingSoon": "Services coming soon. Please check back later.",
+    "moreFrom": "More from"
+  },
   "footer": {
     "aboutUs": "About Us",
     "quickLinks": "Quick Links",

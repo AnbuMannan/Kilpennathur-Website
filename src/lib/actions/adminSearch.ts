@@ -15,7 +15,7 @@ export async function searchAdmin(query: string): Promise<SearchResult[]> {
   const q = query.trim();
   const containsFilter = { contains: q, mode: "insensitive" as const };
 
-  const [news, jobs, villages, events, businesses, schemes, classifieds] =
+  const [news, jobs, villages, events, businesses, schemes, classifieds, services, servicePosts] =
     await Promise.all([
       prisma.news.findMany({
         where: {
@@ -95,6 +95,28 @@ export async function searchAdmin(query: string): Promise<SearchResult[]> {
         take: 5,
         orderBy: { createdAt: "desc" },
       }),
+      prisma.service.findMany({
+        where: {
+          OR: [
+            { title: containsFilter },
+            { titleTamil: containsFilter },
+          ],
+        },
+        select: { id: true, title: true },
+        take: 5,
+        orderBy: { order: "asc" },
+      }),
+      prisma.servicePost.findMany({
+        where: {
+          OR: [
+            { title: containsFilter },
+            { titleTamil: containsFilter },
+          ],
+        },
+        select: { id: true, title: true, serviceId: true },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+      }),
     ]);
 
   const results: SearchResult[] = [
@@ -139,6 +161,18 @@ export async function searchAdmin(query: string): Promise<SearchResult[]> {
       id: c.id,
       title: c.title,
       editUrl: `/admin/classifieds/${c.id}/edit`,
+    })),
+    ...services.map((s) => ({
+      type: "Service",
+      id: s.id,
+      title: s.title,
+      editUrl: `/admin/services/${s.id}/edit`,
+    })),
+    ...servicePosts.map((sp) => ({
+      type: "Service Post",
+      id: sp.id,
+      title: sp.title,
+      editUrl: `/admin/services/${sp.serviceId}/posts/${sp.id}/edit`,
     })),
   ];
 

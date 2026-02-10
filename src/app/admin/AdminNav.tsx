@@ -17,6 +17,7 @@ import {
   Users,
   ImagePlus,
   Bus,
+  ShieldCheck,
 } from "lucide-react";
 import { canAccessSection } from "@/lib/adminRoles";
 import type { AdminRole } from "@/lib/adminRoles";
@@ -31,6 +32,7 @@ const navLinks: { href: string; label: string; icon: typeof LayoutDashboard; rol
   { href: "/admin/schemes", label: "Schemes", icon: Landmark, role: "editor" },
   { href: "/admin/classifieds", label: "Classifieds", icon: ShoppingBag, role: "editor" },
   { href: "/admin/utilities", label: "Utilities", icon: Bus, role: "editor" },
+  { href: "/admin/services", label: "My Services", icon: ShieldCheck, role: "editor" },
   { href: "/admin/categories", label: "Categories", icon: FolderOpen, role: "admin" },
   { href: "/admin/contact", label: "Contact", icon: Mail, role: "admin" },
   { href: "/admin/newsletter", label: "Newsletter", icon: Users, role: "admin" },

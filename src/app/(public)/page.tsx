@@ -22,7 +22,9 @@ import {
   Landmark,
   Briefcase,
   ShoppingBag,
+  ShieldCheck,
 } from "lucide-react";
+import { DynamicIcon } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -100,12 +102,11 @@ export default async function HomePage() {
     classifiedCount: 0,
   };
   let newsCategoryCounts: { id: string; name: string; nameTamil: string | null; slug: string; type: string; postCount: number }[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let latestJobs: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let latestSchemes: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let latestClassifieds: any[] = [];
+  let latestJobs: Awaited<ReturnType<typeof prisma.job.findMany>> = [];
+  let latestSchemes: Awaited<ReturnType<typeof prisma.scheme.findMany>> = [];
+  let latestClassifieds: Awaited<ReturnType<typeof prisma.classified.findMany>> = [];
+  let services: { title: string; titleTamil: string | null; slug: string; icon: string | null }[] = [];
+  let showNewsletter = true;
 
   try {
     const [
@@ -124,6 +125,8 @@ export default async function HomePage() {
       jobs,
       schemes,
       classifieds,
+      fetchedServices,
+      newsletterSetting,
     ] = await Promise.all([
       prisma.news.findMany({
         where: { status: "published" },
@@ -149,22 +152,29 @@ export default async function HomePage() {
       prisma.village.count(),
       prisma.event.count(),
       prisma.job.count({ where: { status: "published" } }),
-      (prisma as any).scheme.count({ where: { status: "published" } }),
-      (prisma as any).classified.count({ where: { status: "published" } }),
+      prisma.scheme.count({ where: { status: "published" } }),
+      prisma.classified.count({ where: { status: "published" } }),
       prisma.job.findMany({
         where: { status: "published" },
         orderBy: { createdAt: "desc" },
         take: 3,
       }),
-      (prisma as any).scheme.findMany({
+      prisma.scheme.findMany({
         where: { status: "published" },
         orderBy: { createdAt: "desc" },
         take: 3,
       }),
-      (prisma as any).classified.findMany({
+      prisma.classified.findMany({
         where: { status: "published" },
         orderBy: { createdAt: "desc" },
         take: 4,
+      }),
+      prisma.service.findMany({
+        orderBy: { order: "asc" },
+        select: { title: true, titleTamil: true, slug: true, icon: true },
+      }),
+      prisma.siteSetting.findUnique({
+        where: { key: "enable_newsletter" },
       }),
     ]);
 
@@ -177,6 +187,8 @@ export default async function HomePage() {
     latestJobs = jobs;
     latestSchemes = schemes;
     latestClassifieds = classifieds;
+    services = fetchedServices;
+    showNewsletter = newsletterSetting?.value !== "false";
 
     newsCategoryCounts = await Promise.all(
       newsCats.map(async (c) => ({
@@ -226,6 +238,46 @@ export default async function HomePage() {
     <div className="bg-gray-50 dark:bg-gray-900">
       {/* Hero Slider */}
       <HeroSlider slides={sliderData} />
+
+      {/* ══════════ Our Professional Services ══════════ */}
+      {services.length > 0 && (
+        <section className="py-12 bg-muted/30">
+          <div className="max-w-7xl mx-auto px-4 md:px-6">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-serif font-bold mb-2 flex items-center justify-center gap-3">
+                <ShieldCheck className="w-8 h-8 text-indigo-600" />
+                Our Services
+              </h2>
+              <p className="text-muted-foreground text-lg">முக்கிய சேவைகள்</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {services.map((svc) => (
+                <Link key={svc.slug} href={`/services/${svc.slug}`} className="group">
+                  <Card className="text-center bg-card hover:shadow-md transition-all hover:-translate-y-1">
+                    <CardContent className="pt-6 pb-5">
+                      <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 mx-auto mb-3 group-hover:scale-110 transition-transform">
+                        <DynamicIcon name={svc.icon ?? undefined} className="w-7 h-7" />
+                      </div>
+                      <div className="font-semibold text-sm text-foreground">{svc.title}</div>
+                      {svc.titleTamil && (
+                        <div className="text-xs text-muted-foreground mt-0.5">{svc.titleTamil}</div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+            <div className="text-center mt-6">
+              <Link href="/services">
+                <Button variant="outline" className="gap-2">
+                  View All Services
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 space-y-16">
@@ -711,9 +763,11 @@ export default async function HomePage() {
         </section>
 
         {/* ══════════ Newsletter Signup ══════════ */}
-        <section className="py-12">
-          <NewsletterSignup />
-        </section>
+        {showNewsletter && (
+          <section className="py-12">
+            <NewsletterSignup />
+          </section>
+        )}
       </div>
     </div>
   );

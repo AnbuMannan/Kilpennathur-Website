@@ -19,11 +19,25 @@ import {
 } from "lucide-react";
 
 function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(date);
+  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeZone: "Asia/Kolkata" }).format(date);
 }
 
 function formatShortDate(date: Date): string {
-  return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" }).format(date);
+  return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" }).format(date);
+}
+
+/** Convert a Date to YYYY-MM-DD string in Asia/Kolkata timezone */
+function toISTDateKey(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const y = parts.find((p) => p.type === "year")?.value ?? "2026";
+  const m = parts.find((p) => p.type === "month")?.value ?? "01";
+  const d = parts.find((p) => p.type === "day")?.value ?? "01";
+  return `${y}-${m}-${d}`;
 }
 
 type MetricCardProps = {
@@ -142,17 +156,17 @@ export default async function AdminDashboardPage() {
     draftSchemes = recentDraftSchemes;
     draftClassifieds = recentDraftClassifieds;
 
-    // Build views-per-day data for last 7 days
+    // Build views-per-day data for last 7 days (IST timezone)
     const dayMap = new Map<string, number>();
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
+      const key = toISTDateKey(d);
       dayMap.set(key, 0);
     }
     for (const item of recentPublishedNews) {
       if (item.publishedAt) {
-        const key = item.publishedAt.toISOString().slice(0, 10);
+        const key = toISTDateKey(item.publishedAt);
         if (dayMap.has(key)) {
           dayMap.set(key, (dayMap.get(key) ?? 0) + item.views);
         }

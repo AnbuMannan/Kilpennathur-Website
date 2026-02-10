@@ -218,7 +218,7 @@ export function BusForm(props: BusFormProps) {
       </fieldset>
 
       {/* ──────────── Actions ──────────── */}
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-4">
         <Button type="submit">
           {isEdit ? "Update Bus Timing" : "Add Bus Timing"}
         </Button>

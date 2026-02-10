@@ -492,7 +492,7 @@ export function ClassifiedForm(props: ClassifiedFormProps) {
       </fieldset>
 
       {/* ──── Actions ──── */}
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-4">
         <Button type="submit">
           {isEdit ? "Update Listing" : "Create Listing"}
         </Button>

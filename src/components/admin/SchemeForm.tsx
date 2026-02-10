@@ -371,7 +371,7 @@ export function SchemeForm(props: SchemeFormProps) {
       </fieldset>
 
       {/* ──────────── Actions ──────────── */}
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-4">
         <Button type="submit">
           {isEdit ? "Update Scheme" : "Create Scheme"}
         </Button>

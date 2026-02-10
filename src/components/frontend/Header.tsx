@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ const ABOUT_ITEMS = [
 ];
 
 const SERVICES_ITEMS = [
+  { label: "Our Services", href: "/services" },
   { label: "Bus Timings", href: "/bus-timings" },
   { label: "Helplines", href: "/helplines" },
 ];
@@ -65,6 +66,35 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const [dynamicServices, setDynamicServices] = useState<NavChild[]>([]);
+
+  /* Fetch professional services for the nav dropdown */
+  useEffect(() => {
+    fetch("/api/services")
+      .then((res) => res.json())
+      .then((data: { title: string; slug: string }[]) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDynamicServices(
+            data.map((s) => ({ label: s.title, href: `/services/${s.slug}` })),
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  /* Build nav with dynamic services merged into the Services dropdown */
+  const navItems = useMemo(() => {
+    if (dynamicServices.length === 0) return MAIN_NAV;
+    return MAIN_NAV.map((item) => {
+      if (item.label === "Services" && item.subItems) {
+        return {
+          ...item,
+          subItems: [...item.subItems, ...dynamicServices],
+        };
+      }
+      return item;
+    });
+  }, [dynamicServices]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -123,7 +153,7 @@ export function Header() {
               className="hidden xl:flex items-center flex-1 min-w-0"
               aria-label="Main navigation"
             >
-              {MAIN_NAV.map((item) => (
+              {navItems.map((item) => (
                 <div
                   key={item.label}
                   className="relative"
@@ -256,7 +286,7 @@ export function Header() {
             aria-label="Mobile navigation"
           >
             <ul className="space-y-1">
-              {MAIN_NAV.map((item) => (
+              {navItems.map((item) => (
                 <li key={item.label}>
                   {item.subItems ? (
                     <>

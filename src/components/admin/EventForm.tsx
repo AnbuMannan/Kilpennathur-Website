@@ -93,7 +93,7 @@ export function EventForm(props: EventFormProps) {
         />
       }
     >
-    <form action={formAction} className="max-w-2xl space-y-4">
+    <form action={formAction} className="max-w-3xl space-y-6">
       {isEdit && event && <input type="hidden" name="id" value={event.id} />}
 
       {state?.error && (
@@ -102,104 +102,119 @@ export function EventForm(props: EventFormProps) {
         </p>
       )}
 
-      <div>
-        <label htmlFor="title" className="mb-1 block text-sm font-medium">
-          Title (English) *
-        </label>
-        <Input
-          id="title"
-          name="title"
-          type="text"
-          required
-          defaultValue={event?.title ?? ""}
-          onChange={(e) => setPreviewTitle(e.target.value)}
-          className="w-full"
-        />
-        {state?.fieldErrors?.title && (
-          <p className="mt-1 text-sm text-destructive">
-            {state.fieldErrors.title}
-          </p>
-        )}
-      </div>
+      {/* ──────────── Event Details ──────────── */}
+      <fieldset className="space-y-4 rounded-lg border border-border p-4">
+        <legend className="px-2 text-sm font-semibold text-foreground">
+          Event Details
+        </legend>
 
-      <div>
-        <label htmlFor="titleTamil" className="mb-1 block text-sm font-medium">
-          Title (Tamil)
-        </label>
-        <Input
-          id="titleTamil"
-          name="titleTamil"
-          type="text"
-          defaultValue={event?.titleTamil ?? ""}
-          onChange={(e) => setPreviewTitleTamil(e.target.value)}
-          className="w-full"
-        />
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="title" className="mb-1 block text-sm font-medium">
+              Title (English) *
+            </label>
+            <Input
+              id="title"
+              name="title"
+              type="text"
+              required
+              defaultValue={event?.title ?? ""}
+              onChange={(e) => setPreviewTitle(e.target.value)}
+              className="w-full"
+            />
+            {state?.fieldErrors?.title && (
+              <p className="mt-1 text-sm text-destructive">
+                {state.fieldErrors.title}
+              </p>
+            )}
+          </div>
+          <div>
+            <label htmlFor="titleTamil" className="mb-1 block text-sm font-medium">
+              Title (Tamil)
+            </label>
+            <Input
+              id="titleTamil"
+              name="titleTamil"
+              type="text"
+              defaultValue={event?.titleTamil ?? ""}
+              onChange={(e) => setPreviewTitleTamil(e.target.value)}
+              className="w-full"
+              placeholder="நிகழ்வு தலைப்பு (தமிழ்)"
+            />
+          </div>
+        </div>
 
-      <div>
-        <label htmlFor="description" className="mb-1 block text-sm font-medium">
-          Description
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          rows={4}
-          defaultValue={event?.description ?? ""}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="Optional event description..."
-        />
-      </div>
+        <div>
+          <label htmlFor="date" className="mb-1 block text-sm font-medium">
+            Date &amp; Time *
+          </label>
+          <Input
+            id="date"
+            name="date"
+            type="datetime-local"
+            required
+            defaultValue={defaultDate}
+            className="w-full"
+          />
+          {state?.fieldErrors?.date && (
+            <p className="mt-1 text-sm text-destructive">
+              {state.fieldErrors.date}
+            </p>
+          )}
+        </div>
 
-      <div>
-        <label htmlFor="date" className="mb-1 block text-sm font-medium">
-          Date & time *
-        </label>
-        <Input
-          id="date"
-          name="date"
-          type="datetime-local"
-          required
-          defaultValue={defaultDate}
-          className="w-full"
-        />
-        {state?.fieldErrors?.date && (
-          <p className="mt-1 text-sm text-destructive">
-            {state.fieldErrors.date}
-          </p>
-        )}
-      </div>
+        <div>
+          <label htmlFor="description" className="mb-1 block text-sm font-medium">
+            Description
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            rows={4}
+            defaultValue={event?.description ?? ""}
+            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Describe the event, venue, activities..."
+          />
+        </div>
+      </fieldset>
 
-      <div>
-        <label htmlFor="image" className="mb-1 block text-sm font-medium">
-          Image
-        </label>
-        <input
-          id="image"
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          disabled={uploading}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-muted file:px-3 file:py-1 file:text-sm"
-        />
-        {uploading && (
-          <p className="mt-1 text-sm text-muted-foreground">Uploading image...</p>
-        )}
-        {uploadError && (
-          <p className="mt-1 text-sm text-destructive">{uploadError}</p>
-        )}
-        {imagePreview && !uploadError && (
-          <div className="mt-2">
+      {/* ──────────── Media ──────────── */}
+      <fieldset className="space-y-4 rounded-lg border border-border p-4">
+        <legend className="px-2 text-sm font-semibold text-foreground">
+          Media
+        </legend>
+
+        <div>
+          <label htmlFor="image" className="mb-1 block text-sm font-medium">
+            Image
+          </label>
+          <input
+            id="image"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            disabled={uploading}
+            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-muted file:px-3 file:py-1 file:text-sm"
+          />
+          {uploading && (
+            <p className="mt-1 text-sm text-muted-foreground">Uploading image...</p>
+          )}
+          {uploadError && (
+            <p className="mt-1 text-sm text-destructive">{uploadError}</p>
+          )}
+          {imagePreview && !uploadError && (
             <img
               src={imagePreview}
               alt="Preview"
-              className="h-32 w-auto rounded-md border border-border object-cover"
+              className="mt-2 h-32 w-auto rounded-md border border-border object-cover"
             />
-          </div>
-        )}
-        <input type="hidden" name="imageUrl" value={imageUrl} />
-      </div>
+          )}
+          <input type="hidden" name="imageUrl" value={imageUrl} />
+        </div>
+      </fieldset>
 
-      <div className="flex gap-3 pt-2">
+      {/* ──────────── Actions ──────────── */}
+      <div className="flex gap-3 pt-4">
         <Button type="submit">
           {isEdit ? "Update Event" : "Create Event"}
         </Button>

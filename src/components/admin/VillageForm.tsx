@@ -116,7 +116,7 @@ export function VillageForm(props: VillageFormProps) {
         />
       }
     >
-    <form onSubmit={handleSubmit} className="max-w-2xl space-y-4">
+    <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
       {isEdit && village && (
         <input type="hidden" name="id" value={village.id} />
       )}
@@ -127,85 +127,93 @@ export function VillageForm(props: VillageFormProps) {
         </p>
       )}
 
-      <div>
-        <label htmlFor="name" className="mb-1 block text-sm font-medium">
-          Name (English) *
-        </label>
-        <Input
-          id="name"
-          name="name"
-          type="text"
-          required
-          defaultValue={village?.name ?? ""}
-          onChange={handleNameChange}
-          className="w-full"
-        />
-        {state?.fieldErrors?.name && (
-          <p className="mt-1 text-sm text-destructive">
-            {state.fieldErrors.name}
+      {/* ──────────── Basic Information ──────────── */}
+      <fieldset className="space-y-4 rounded-lg border border-border p-4">
+        <legend className="px-2 text-sm font-semibold text-foreground">
+          Basic Information
+        </legend>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="name" className="mb-1 block text-sm font-medium">
+              Name (English) *
+            </label>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              required
+              defaultValue={village?.name ?? ""}
+              onChange={handleNameChange}
+              className="w-full"
+            />
+            {state?.fieldErrors?.name && (
+              <p className="mt-1 text-sm text-destructive">
+                {state.fieldErrors.name}
+              </p>
+            )}
+          </div>
+          <div>
+            <label htmlFor="nameTamil" className="mb-1 block text-sm font-medium">
+              Name (Tamil) *
+            </label>
+            <Input
+              id="nameTamil"
+              name="nameTamil"
+              type="text"
+              required
+              defaultValue={village?.nameTamil ?? ""}
+              onChange={(e) => setPreviewNameTamil(e.target.value)}
+              className="w-full"
+            />
+            {state?.fieldErrors?.nameTamil && (
+              <p className="mt-1 text-sm text-destructive">
+                {state.fieldErrors.nameTamil}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="slug" className="mb-1 block text-sm font-medium">
+            Slug
+          </label>
+          <Input
+            id="slug"
+            name="slug"
+            type="text"
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            onBlur={handleSlugBlur}
+            placeholder="auto-generated-from-name"
+            className="w-full font-mono text-sm"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Auto-generated from English name. Edit if needed. Use lowercase letters, numbers, and hyphens only.
           </p>
-        )}
-      </div>
+          {state?.fieldErrors?.slug && (
+            <p className="mt-1 text-sm text-destructive">
+              {state.fieldErrors.slug}
+            </p>
+          )}
+        </div>
 
-      <div>
-        <label htmlFor="nameTamil" className="mb-1 block text-sm font-medium">
-          Name (Tamil) *
-        </label>
-        <Input
-          id="nameTamil"
-          name="nameTamil"
-          type="text"
-          required
-          defaultValue={village?.nameTamil ?? ""}
-          onChange={(e) => setPreviewNameTamil(e.target.value)}
-          className="w-full"
-        />
-        {state?.fieldErrors?.nameTamil && (
-          <p className="mt-1 text-sm text-destructive">
-            {state.fieldErrors.nameTamil}
-          </p>
-        )}
-      </div>
+        <div>
+          <label htmlFor="description" className="mb-1 block text-sm font-medium">
+            Description
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            rows={5}
+            defaultValue={village?.description ?? ""}
+            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Optional village description..."
+          />
+        </div>
+      </fieldset>
 
-      <div>
-        <label htmlFor="slug" className="mb-1 block text-sm font-medium">
-          Slug
-        </label>
-        <Input
-          id="slug"
-          name="slug"
-          type="text"
-          value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-          onBlur={handleSlugBlur}
-          placeholder="auto-generated-from-name"
-          className="w-full font-mono text-sm"
-        />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Auto-generated from English name. Edit if needed. Use lowercase letters, numbers, and hyphens only.
-        </p>
-        {state?.fieldErrors?.slug && (
-          <p className="mt-1 text-sm text-destructive">
-            {state.fieldErrors.slug}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="description" className="mb-1 block text-sm font-medium">
-          Description
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          rows={5}
-          defaultValue={village?.description ?? ""}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="Optional village description..."
-        />
-      </div>
-
-      {/* President Information */}
+      {/* ──────────── President Information ──────────── */}
       <fieldset className="space-y-4 rounded-lg border border-border p-4">
         <legend className="px-2 text-sm font-semibold text-foreground">
           Village President / Panchayat Leader
@@ -312,7 +320,7 @@ export function VillageForm(props: VillageFormProps) {
         </div>
       </fieldset>
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-4">
         <Button type="submit">
           {isEdit ? "Update Village" : "Create Village"}
         </Button>

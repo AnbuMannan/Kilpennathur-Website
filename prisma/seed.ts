@@ -1011,6 +1011,13 @@ async function main() {
         label: "Show Archives Sidebar",
         description: "Display monthly archives in news pages",
         category: "display"
+      },
+      {
+        key: "enable_newsletter",
+        value: "true",
+        label: "Enable Newsletter Section",
+        description: "Show the newsletter signup form on the homepage and footer",
+        category: "display"
       }
     ];
 

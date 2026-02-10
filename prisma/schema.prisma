@@ -276,6 +276,46 @@ model Helpline {
 }
 
 /* ---------------------------------------------------------------------------
+   Professional Services
+   --------------------------------------------------------------------------- */
+
+model Service {
+  id          String        @id @default(cuid())
+  title       String
+  titleTamil  String?
+  slug        String        @unique
+  description String?       @db.Text
+  icon        String?
+  order       Int           @default(0)
+  posts       ServicePost[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([order])
+}
+
+model ServicePost {
+  id           String    @id @default(cuid())
+  serviceId    String
+  service      Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  title        String
+  titleTamil   String?
+  slug         String    @unique
+  content      String    @db.Text
+  contentTamil String?   @db.Text
+  image        String?
+  status       String    @default("draft")
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([serviceId])
+  @@index([status])
+  @@index([slug])
+}
+
+/* ---------------------------------------------------------------------------
    Newsletter subscribers
    --------------------------------------------------------------------------- */
 

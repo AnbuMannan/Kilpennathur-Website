@@ -340,9 +340,17 @@ export default function CategoriesPage() {
                 className="rounded-xl border border-border bg-card overflow-hidden"
               >
                 {/* Group Header */}
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => toggleCollapse(type)}
-                  className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors text-left"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggleCollapse(type);
+                    }
+                  }}
+                  className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors text-left cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <div className={meta.color}>{meta.icon}</div>
@@ -373,7 +381,7 @@ export default function CategoriesPage() {
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     )}
                   </div>
-                </button>
+                </div>
 
                 {/* Category pills */}
                 {!isCollapsed && (

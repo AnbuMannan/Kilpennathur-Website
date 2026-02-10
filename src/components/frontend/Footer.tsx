@@ -9,6 +9,7 @@ import {
   Twitter,
   Youtube,
 } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 import NewsletterSignup from "./NewsletterSignup";
 
 const SOCIAL_LINKS = [
@@ -45,14 +46,21 @@ const NEWS_CATEGORIES = [
   { label: "Spiritual", href: "/news?category=spiritual" },
 ] as const;
 
-export function Footer() {
+export async function Footer() {
+  const setting = await prisma.siteSetting.findUnique({
+    where: { key: "enable_newsletter" },
+  });
+  const showNewsletter = setting?.value !== "false";
+
   return (
     <footer className="bg-slate-900 text-white" role="contentinfo">
       <div className="container mx-auto px-4 py-12">
         {/* Newsletter Signup */}
-        <div className="mb-12">
-          <NewsletterSignup />
-        </div>
+        {showNewsletter && (
+          <div className="mb-12">
+            <NewsletterSignup />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           {/* About column */}
