@@ -107,6 +107,10 @@ export default async function HomePage() {
   let latestClassifieds: Awaited<ReturnType<typeof prisma.classified.findMany>> = [];
   let services: { title: string; titleTamil: string | null; slug: string; icon: string | null }[] = [];
   let showNewsletter = true;
+  let enableSchemes = true;
+  let enableClassifieds = true;
+  let enableBusTimings = true;
+  let enableHelplines = true;
 
   try {
     const [
@@ -126,7 +130,7 @@ export default async function HomePage() {
       schemes,
       classifieds,
       fetchedServices,
-      newsletterSetting,
+      displaySettings,
     ] = await Promise.all([
       prisma.news.findMany({
         where: { status: "published" },
@@ -173,8 +177,8 @@ export default async function HomePage() {
         orderBy: { order: "asc" },
         select: { title: true, titleTamil: true, slug: true, icon: true },
       }),
-      prisma.siteSetting.findUnique({
-        where: { key: "enable_newsletter" },
+      prisma.siteSetting.findMany({
+        where: { category: "display" },
       }),
     ]);
 
@@ -188,7 +192,14 @@ export default async function HomePage() {
     latestSchemes = schemes;
     latestClassifieds = classifieds;
     services = fetchedServices;
-    showNewsletter = newsletterSetting?.value !== "false";
+
+    const getFlag = (key: string) =>
+      (displaySettings as { key: string; value: string }[]).find((s) => s.key === key)?.value !== "false";
+    showNewsletter = getFlag("enable_newsletter");
+    enableSchemes = getFlag("enableSchemes");
+    enableClassifieds = getFlag("enableClassifieds");
+    enableBusTimings = getFlag("enableBusTimings");
+    enableHelplines = getFlag("enableHelplines");
 
     newsCategoryCounts = await Promise.all(
       newsCats.map(async (c) => ({
@@ -285,39 +296,45 @@ export default async function HomePage() {
         {/* ══════════ Quick Services Strip ══════════ */}
         <section>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Link href="/bus-timings" className="group">
-              <Card className="text-center hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all hover:-translate-y-1">
-                <CardContent className="pt-5 pb-4">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mx-auto mb-3 group-hover:scale-110 transition-transform">
-                    <Bus className="w-6 h-6" />
-                  </div>
-                  <div className="font-semibold text-sm">Bus Timings</div>
-                  <div className="text-xs text-muted-foreground">பேருந்து நேரம்</div>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/helplines" className="group">
-              <Card className="text-center hover:shadow-lg hover:border-red-300 dark:hover:border-red-600 transition-all hover:-translate-y-1">
-                <CardContent className="pt-5 pb-4">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 mx-auto mb-3 group-hover:scale-110 transition-transform">
-                    <Phone className="w-6 h-6" />
-                  </div>
-                  <div className="font-semibold text-sm">Helplines</div>
-                  <div className="text-xs text-muted-foreground">அவசர எண்கள்</div>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/schemes" className="group">
-              <Card className="text-center hover:shadow-lg hover:border-emerald-300 dark:hover:border-emerald-600 transition-all hover:-translate-y-1">
-                <CardContent className="pt-5 pb-4">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mx-auto mb-3 group-hover:scale-110 transition-transform">
-                    <Landmark className="w-6 h-6" />
-                  </div>
-                  <div className="font-semibold text-sm">Schemes</div>
-                  <div className="text-xs text-muted-foreground">அரசு திட்டங்கள்</div>
-                </CardContent>
-              </Card>
-            </Link>
+            {enableBusTimings && (
+              <Link href="/bus-timings" className="group">
+                <Card className="text-center hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all hover:-translate-y-1">
+                  <CardContent className="pt-5 pb-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mx-auto mb-3 group-hover:scale-110 transition-transform">
+                      <Bus className="w-6 h-6" />
+                    </div>
+                    <div className="font-semibold text-sm">Bus Timings</div>
+                    <div className="text-xs text-muted-foreground">பேருந்து நேரம்</div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
+            {enableHelplines && (
+              <Link href="/helplines" className="group">
+                <Card className="text-center hover:shadow-lg hover:border-red-300 dark:hover:border-red-600 transition-all hover:-translate-y-1">
+                  <CardContent className="pt-5 pb-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 mx-auto mb-3 group-hover:scale-110 transition-transform">
+                      <Phone className="w-6 h-6" />
+                    </div>
+                    <div className="font-semibold text-sm">Helplines</div>
+                    <div className="text-xs text-muted-foreground">அவசர எண்கள்</div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
+            {enableSchemes && (
+              <Link href="/schemes" className="group">
+                <Card className="text-center hover:shadow-lg hover:border-emerald-300 dark:hover:border-emerald-600 transition-all hover:-translate-y-1">
+                  <CardContent className="pt-5 pb-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mx-auto mb-3 group-hover:scale-110 transition-transform">
+                      <Landmark className="w-6 h-6" />
+                    </div>
+                    <div className="font-semibold text-sm">Schemes</div>
+                    <div className="text-xs text-muted-foreground">அரசு திட்டங்கள்</div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
             <Link href="/jobs" className="group">
               <Card className="text-center hover:shadow-lg hover:border-amber-300 dark:hover:border-amber-600 transition-all hover:-translate-y-1">
                 <CardContent className="pt-5 pb-4">
@@ -374,22 +391,26 @@ export default async function HomePage() {
               <div className="text-[10px] text-muted-foreground/80">வேலைகள்</div>
             </CardContent>
           </Card>
-          <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardContent className="pt-5 pb-4">
-              <Landmark className="w-10 h-10 text-emerald-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground">{stats.schemeCount}</div>
-              <div className="text-xs text-muted-foreground">Schemes</div>
-              <div className="text-[10px] text-muted-foreground/80">திட்டங்கள்</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardContent className="pt-5 pb-4">
-              <ShoppingBag className="w-10 h-10 text-pink-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-foreground">{stats.classifiedCount}</div>
-              <div className="text-xs text-muted-foreground">Classifieds</div>
-              <div className="text-[10px] text-muted-foreground/80">விளம்பரங்கள்</div>
-            </CardContent>
-          </Card>
+          {enableSchemes && (
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardContent className="pt-5 pb-4">
+                <Landmark className="w-10 h-10 text-emerald-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-foreground">{stats.schemeCount}</div>
+                <div className="text-xs text-muted-foreground">Schemes</div>
+                <div className="text-[10px] text-muted-foreground/80">திட்டங்கள்</div>
+              </CardContent>
+            </Card>
+          )}
+          {enableClassifieds && (
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardContent className="pt-5 pb-4">
+                <ShoppingBag className="w-10 h-10 text-pink-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-foreground">{stats.classifiedCount}</div>
+                <div className="text-xs text-muted-foreground">Classifieds</div>
+                <div className="text-[10px] text-muted-foreground/80">விளம்பரங்கள்</div>
+              </CardContent>
+            </Card>
+          )}
         </section>
 
         {/* ══════════ Latest News Section ══════════ */}
@@ -432,7 +453,7 @@ export default async function HomePage() {
         </section>
 
         {/* ══════════ Government Schemes Section ══════════ */}
-        {latestSchemes.length > 0 && (
+        {enableSchemes && latestSchemes.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-8">
               <div>
@@ -488,10 +509,10 @@ export default async function HomePage() {
         )}
 
         {/* ══════════ Jobs & Classifieds Split Section ══════════ */}
-        {(latestJobs.length > 0 || latestClassifieds.length > 0) && (
+        {(latestJobs.length > 0 || (enableClassifieds && latestClassifieds.length > 0)) && (
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Left Column: Latest Jobs */}
-            <div>
+            <div className={!enableClassifieds ? "lg:col-span-2" : ""}>
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-bold mb-1 flex items-center gap-2">
@@ -541,55 +562,57 @@ export default async function HomePage() {
             </div>
 
             {/* Right Column: Marketplace / Classifieds */}
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold mb-1 flex items-center gap-2">
-                    <ShoppingBag className="w-6 h-6 text-pink-600" />
-                    Marketplace
-                  </h2>
-                  <p className="text-muted-foreground text-sm">சந்தை</p>
+            {enableClassifieds && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-1 flex items-center gap-2">
+                      <ShoppingBag className="w-6 h-6 text-pink-600" />
+                      Marketplace
+                    </h2>
+                    <p className="text-muted-foreground text-sm">சந்தை</p>
+                  </div>
+                  <Link href="/classifieds">
+                    <Button variant="ghost" size="sm" className="gap-1 text-sm">
+                      View All <ArrowRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </Link>
                 </div>
-                <Link href="/classifieds">
-                  <Button variant="ghost" size="sm" className="gap-1 text-sm">
-                    View All <ArrowRight className="w-3.5 h-3.5" />
-                  </Button>
-                </Link>
-              </div>
 
-              {latestClassifieds.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {latestClassifieds.map((item) => (
-                    <ClassifiedCard
-                      key={item.id}
-                      classified={{
-                        id: item.id,
-                        type: item.type,
-                        category: item.category,
-                        title: item.title,
-                        titleTamil: item.titleTamil,
-                        description: item.description,
-                        descriptionTamil: item.descriptionTamil,
-                        price: item.price,
-                        priceLabel: item.priceLabel,
-                        contactName: item.contactName,
-                        contactPhone: item.contactPhone,
-                        location: item.location,
-                        images: item.images,
-                        isFeatured: item.isFeatured,
-                      }}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <Card className="text-center py-8">
-                  <CardContent>
-                    <ShoppingBag className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-muted-foreground">No classifieds posted yet</p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                {latestClassifieds.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {latestClassifieds.map((item) => (
+                      <ClassifiedCard
+                        key={item.id}
+                        classified={{
+                          id: item.id,
+                          type: item.type,
+                          category: item.category,
+                          title: item.title,
+                          titleTamil: item.titleTamil,
+                          description: item.description,
+                          descriptionTamil: item.descriptionTamil,
+                          price: item.price,
+                          priceLabel: item.priceLabel,
+                          contactName: item.contactName,
+                          contactPhone: item.contactPhone,
+                          location: item.location,
+                          images: item.images,
+                          isFeatured: item.isFeatured,
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="text-center py-8">
+                    <CardContent>
+                      <ShoppingBag className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-muted-foreground">No classifieds posted yet</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
           </section>
         )}
 

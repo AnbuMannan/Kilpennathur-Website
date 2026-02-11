@@ -1,4 +1,16 @@
 /* ---------------------------------------------------------------------------
+   Feature flags (from SiteSettings display category)
+   --------------------------------------------------------------------------- */
+
+export interface FeatureFlags {
+  enableSchemes: boolean;
+  enableClassifieds: boolean;
+  enableBusTimings: boolean;
+  enableHelplines: boolean;
+  enableNewsletter: boolean;
+}
+
+/* ---------------------------------------------------------------------------
    User & auth
    --------------------------------------------------------------------------- */
 

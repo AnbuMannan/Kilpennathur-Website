@@ -78,6 +78,22 @@ type AttentionItem = {
 export default async function AdminDashboardPage() {
   const session = await auth();
 
+  // Feature flags
+  let enableSchemes = true;
+  let enableClassifieds = true;
+
+  try {
+    const displaySettings = await prisma.siteSetting.findMany({
+      where: { category: "display" },
+    });
+    const getFlag = (key: string) =>
+      displaySettings.find((s) => s.key === key)?.value !== "false";
+    enableSchemes = getFlag("enableSchemes");
+    enableClassifieds = getFlag("enableClassifieds");
+  } catch {
+    // Default: enabled
+  }
+
   let dbError: string | null = null;
 
   let totalViews = 0;
@@ -149,12 +165,14 @@ export default async function AdminDashboardPage() {
     ]);
 
     totalViews = viewsAgg._sum.views ?? 0;
-    pendingCount = draftNewsCount + draftJobsCount + draftSchemesCount + draftClassifiedsCount;
+    pendingCount = draftNewsCount + draftJobsCount
+      + (enableSchemes ? draftSchemesCount : 0)
+      + (enableClassifieds ? draftClassifiedsCount : 0);
     subscriberCount = subscribers;
     draftNews = recentDraftNews;
     draftJobs = recentDraftJobs;
-    draftSchemes = recentDraftSchemes;
-    draftClassifieds = recentDraftClassifieds;
+    draftSchemes = enableSchemes ? recentDraftSchemes : [];
+    draftClassifieds = enableClassifieds ? recentDraftClassifieds : [];
 
     // Build views-per-day data for last 7 days (IST timezone)
     const dayMap = new Map<string, number>();
@@ -354,7 +372,7 @@ export default async function AdminDashboardPage() {
             { href: "/admin/business/new", label: "Add Business", icon: Building2, bg: "bg-violet-50 text-violet-600" },
             { href: "/admin/events/create", label: "New Event", icon: Calendar, bg: "bg-pink-50 text-pink-600" },
             { href: "/admin/villages/create", label: "Add Village", icon: MapPin, bg: "bg-teal-50 text-teal-600" },
-            { href: "/admin/schemes/new", label: "New Scheme", icon: Landmark, bg: "bg-indigo-50 text-indigo-600" },
+            ...(enableSchemes ? [{ href: "/admin/schemes/new", label: "New Scheme", icon: Landmark, bg: "bg-indigo-50 text-indigo-600" }] : []),
           ].map((action) => (
             <Link
               key={action.href}

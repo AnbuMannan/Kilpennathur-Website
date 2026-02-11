@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,14 @@ export default async function AdminHelplinesPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  // Feature flag guard
+  try {
+    const helplineSetting = await prisma.siteSetting.findFirst({
+      where: { key: "enableHelplines", category: "display" },
+    });
+    if (helplineSetting?.value === "false") redirect("/admin");
+  } catch { /* allow access on error */ }
+
   const params = await searchParams;
   const search = toStr(params.search).trim();
 

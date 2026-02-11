@@ -10,6 +10,12 @@ export default async function AdminServicesPage() {
     include: { _count: { select: { posts: true } } },
   });
 
+  const settings = await prisma.siteSetting.findFirst({
+    where: { key: "enableAddService" },
+  });
+
+  const canAddService = settings?.value === "true";
+
   return (
     <div className="max-w-6xl">
       <div className="flex items-center justify-between mb-6">
@@ -19,13 +25,15 @@ export default async function AdminServicesPage() {
             Manage professional service categories and their posts.
           </p>
         </div>
-        <Link
-          href="/admin/services/new"
-          className="inline-flex items-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm text-background hover:opacity-90 transition-opacity"
-        >
-          <Plus className="h-4 w-4" />
-          Add Service
-        </Link>
+        {canAddService && (
+          <Link
+            href="/admin/services/new"
+            className="inline-flex items-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm text-background hover:opacity-90 transition-opacity"
+          >
+            <Plus className="h-4 w-4" />
+            Add Service
+          </Link>
+        )}
       </div>
 
       {services.length === 0 ? (

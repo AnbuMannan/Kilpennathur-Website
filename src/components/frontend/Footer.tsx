@@ -9,7 +9,7 @@ import {
   Twitter,
   Youtube,
 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import type { FeatureFlags } from "@/types";
 import NewsletterSignup from "./NewsletterSignup";
 
 const SOCIAL_LINKS = [
@@ -29,13 +29,13 @@ const QUICK_LINKS = [
   { label: "Contact Us", href: "/contact" },
 ] as const;
 
-const SERVICES_LINKS = [
+const ALL_SERVICES_LINKS = [
   { label: "Jobs", href: "/jobs" },
-  { label: "Classifieds", href: "/classifieds" },
-  { label: "Bus Timings", href: "/bus-timings" },
-  { label: "Government Schemes", href: "/schemes" },
-  { label: "Helplines", href: "/helplines" },
-] as const;
+  { label: "Classifieds", href: "/classifieds", flag: "enableClassifieds" as const },
+  { label: "Bus Timings", href: "/bus-timings", flag: "enableBusTimings" as const },
+  { label: "Government Schemes", href: "/schemes", flag: "enableSchemes" as const },
+  { label: "Helplines", href: "/helplines", flag: "enableHelplines" as const },
+];
 
 const NEWS_CATEGORIES = [
   { label: "Breaking News", href: "/news?category=breaking" },
@@ -46,17 +46,24 @@ const NEWS_CATEGORIES = [
   { label: "Spiritual", href: "/news?category=spiritual" },
 ] as const;
 
-export async function Footer() {
-  const setting = await prisma.siteSetting.findUnique({
-    where: { key: "enable_newsletter" },
-  });
-  const showNewsletter = setting?.value !== "false";
+export function Footer({ featureFlags }: { featureFlags?: FeatureFlags }) {
+  const ff = featureFlags ?? {
+    enableSchemes: true,
+    enableClassifieds: true,
+    enableBusTimings: true,
+    enableHelplines: true,
+    enableNewsletter: true,
+  };
+
+  const servicesLinks = ALL_SERVICES_LINKS.filter(
+    (link) => !link.flag || ff[link.flag],
+  );
 
   return (
     <footer className="bg-slate-900 text-white" role="contentinfo">
       <div className="container mx-auto px-4 py-12">
         {/* Newsletter Signup */}
-        {showNewsletter && (
+        {ff.enableNewsletter && (
           <div className="mb-12">
             <NewsletterSignup />
           </div>
@@ -116,7 +123,7 @@ export async function Footer() {
               Services
             </h3>
             <ul className="space-y-2">
-              {SERVICES_LINKS.map(({ label, href }) => (
+              {servicesLinks.map(({ label, href }) => (
                 <li key={href}>
                   <Link
                     href={href}

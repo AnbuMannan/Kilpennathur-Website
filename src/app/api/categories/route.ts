@@ -73,11 +73,10 @@ export async function POST(request: Request) {
     }
 
     const validTypes = ["news", "business", "event"];
-    const categoryType = validTypes.includes(
-      typeof type === "string" ? type : ""
-    )
-      ? type
-      : "news";
+    let categoryType = "news";
+    if (typeof type === "string" && validTypes.includes(type)) {
+      categoryType = type;
+    }
 
     const existing = await prisma.category.findUnique({ where: { slug } });
     if (existing) {

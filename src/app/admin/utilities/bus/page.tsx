@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,14 @@ export default async function AdminBusPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  // Feature flag guard
+  try {
+    const busSetting = await prisma.siteSetting.findFirst({
+      where: { key: "enableBusTimings", category: "display" },
+    });
+    if (busSetting?.value === "false") redirect("/admin");
+  } catch { /* allow access on error */ }
+
   const params = await searchParams;
   const search = toStr(params.search).trim();
 

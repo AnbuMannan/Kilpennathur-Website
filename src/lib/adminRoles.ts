@@ -4,12 +4,14 @@
  * Currently only "admin" exists; extend when adding editor, moderator, etc.
  */
 
-export type AdminRole = "admin" | "editor" | "moderator";
+export type AdminRole = "ADMIN" | "CUSTOMER" | "admin" | "editor" | "moderator";
 
 export const ROLE_HIERARCHY: Record<AdminRole, number> = {
+  ADMIN: 100,
   admin: 100,
   editor: 50,
   moderator: 25,
+  CUSTOMER: 10,
 };
 
 export function hasRole(userRole: string | undefined, required: AdminRole): boolean {

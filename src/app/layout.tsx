@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Providers } from "./providers";
 import Analytics from "./analytics";
+// import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import { WebSiteJsonLd, OrganizationJsonLd } from "@/components/JsonLd";
 import { CookieConsent } from "@/components/frontend/CookieConsent";
 import "./globals.css";
@@ -31,6 +32,12 @@ const merriweather = Merriweather({
 export const metadata: Metadata = {
   title: "Kilpennathur - கீழ்பென்னாத்தூர்",
   description: "Community news and information portal for Kilpennathur and surrounding villages",
+  themeColor: "#2563eb",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Kilpennathur",
+  },
 };
 
 export default async function RootLayout({
@@ -53,6 +60,7 @@ export default async function RootLayout({
           <Providers>{children}</Providers>
         </NextIntlClientProvider>
         <Analytics />
+        {/* <VercelAnalytics /> */}
         <CookieConsent />
       </body>
     </html>

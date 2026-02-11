@@ -13,12 +13,17 @@ datasource db {
    User & authentication
    --------------------------------------------------------------------------- */
 
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   password  String
   name      String
-  role      String   @default("editor")
+  role      Role     @default(CUSTOMER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -86,6 +91,8 @@ model Business {
   description String?  @db.Text
   image       String?
   website     String?
+  mapUrl      String?
+  services    String?  @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -110,6 +117,7 @@ model Village {
   population         Int?
   totalStreets       Int?
   wardCount          Int?
+  views              Int      @default(0)
   createdAt          DateTime @default(now())
 
   // Indexes

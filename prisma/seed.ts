@@ -13,19 +13,33 @@ async function main() {
 
     // Hash password for admin user
     const hashedPassword = await bcrypt.hash("Admin@123", 10);
+    const hashedPassword2 = await bcrypt.hash("Vikram@123", 10);
 
     // Create admin user
     const admin = await prisma.user.upsert({
       where: { email: "admin@kilpennathur.com" },
-      update: {},
+      update: { role: "ADMIN" },
       create: {
         email: "admin@kilpennathur.com",
         password: hashedPassword,
         name: "Admin User",
-        role: "admin",
+        role: "ADMIN",
       },
     });
     console.log("✅ Admin user created:", admin.email);
+
+    // Create customer user
+    const customer = await prisma.user.upsert({
+      where: { email: "vikram@kilpennathur.com" },
+      update: { role: "CUSTOMER" },
+      create: {
+        email: "vikram@kilpennathur.com",
+        password: hashedPassword2, // Using same password for convenience
+        name: "Vikram",
+        role: "CUSTOMER",
+      },
+    });
+    console.log("✅ Customer user created:", customer.email);
 
     // Create NEWS categories
     const newsCategories = [
@@ -1018,6 +1032,41 @@ async function main() {
         label: "Enable Newsletter Section",
         description: "Show the newsletter signup form on the homepage and footer",
         category: "display"
+      },
+      {
+        key: "enableSchemes",
+        value: "true",
+        label: "Enable Schemes Module",
+        description: "Show Government Schemes in menu and homepage",
+        category: "display"
+      },
+      {
+        key: "enableClassifieds",
+        value: "true",
+        label: "Enable Classifieds Module",
+        description: "Show Classifieds/Marketplace in menu and homepage",
+        category: "display"
+      },
+      {
+        key: "enableBusTimings",
+        value: "true",
+        label: "Enable Bus Timings",
+        description: "Show Bus Timings in menu and homepage",
+        category: "display"
+      },
+      {
+        key: "enableHelplines",
+        value: "true",
+        label: "Enable Helplines",
+        description: "Show Emergency Helplines in menu and homepage",
+        category: "display"
+      },
+      {
+        key: "enableAddService",
+        value: "true",
+        label: "Enable Add Service Button",
+        category: "display",
+        description: "Toggle the visibility of the 'Add New Service' button in the Admin Panel"
       }
     ];
 

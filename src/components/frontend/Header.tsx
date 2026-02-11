@@ -5,10 +5,12 @@ import { useState, useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { FeatureFlags } from "@/types";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { GlobalSearch } from "./GlobalSearch";
 import { ThemeToggle } from "./ThemeToggle";
 import { BreakingNewsBar } from "./BreakingNewsBar";
+import { Logo } from "@/components/frontend/Logo";
 
 /* ────────────── Sub-menu data ────────────── */
 
@@ -48,25 +50,33 @@ type NavItem = {
 const MAIN_NAV: NavItem[] = [
   { label: "Home", labelTa: "முகப்பு", href: "/" },
   { label: "News", labelTa: "செய்திகள்", href: "/news", subItems: NEWS_ITEMS },
-  { label: "Directory", labelTa: "வணிக அடைவு", href: "/directory" },
   { label: "Villages", labelTa: "கிராமங்கள்", href: "/villages" },
   { label: "Schemes", labelTa: "திட்டங்கள்", href: "/schemes" },
+  { label: "Directory", labelTa: "வணிக அடைவு", href: "/directory" },
+  { label: "Jobs", labelTa: "வேலைகள்", href: "/jobs" },
   { label: "Events", labelTa: "நிகழ்வுகள்", href: "/events" },
   { label: "Classifieds", labelTa: "விளம்பரங்கள்", href: "/classifieds" },
   { label: "Services", labelTa: "சேவைகள்", href: "/bus-timings", subItems: SERVICES_ITEMS },
   { label: "About", labelTa: "எங்களை பற்றி", href: "/about", subItems: ABOUT_ITEMS },
-  { label: "Jobs", labelTa: "வேலைகள்", href: "/jobs" },
 ];
 
 /* ────────────── Component ────────────── */
 
-export function Header() {
+export function Header({ featureFlags }: { featureFlags?: FeatureFlags }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [dynamicServices, setDynamicServices] = useState<NavChild[]>([]);
+
+  const ff = featureFlags ?? {
+    enableSchemes: true,
+    enableClassifieds: true,
+    enableBusTimings: true,
+    enableHelplines: true,
+    enableNewsletter: true,
+  };
 
   /* Fetch professional services for the nav dropdown */
   useEffect(() => {
@@ -82,19 +92,38 @@ export function Header() {
       .catch(() => {});
   }, []);
 
-  /* Build nav with dynamic services merged into the Services dropdown */
+  /* Build nav with dynamic services merged, then filter by feature flags */
   const navItems = useMemo(() => {
-    if (dynamicServices.length === 0) return MAIN_NAV;
-    return MAIN_NAV.map((item) => {
-      if (item.label === "Services" && item.subItems) {
-        return {
-          ...item,
-          subItems: [...item.subItems, ...dynamicServices],
-        };
-      }
-      return item;
-    });
-  }, [dynamicServices]);
+    // Map of nav labels to their feature flag
+    const labelFlags: Record<string, boolean> = {
+      Schemes: ff.enableSchemes,
+      Classifieds: ff.enableClassifieds,
+    };
+
+    // Map of service submenu labels to their feature flag
+    const serviceChildFlags: Record<string, boolean> = {
+      "Bus Timings": ff.enableBusTimings,
+      Helplines: ff.enableHelplines,
+    };
+
+    let items = MAIN_NAV
+      // Remove top-level nav items whose flag is off
+      .filter((item) => labelFlags[item.label] === undefined || labelFlags[item.label])
+      .map((item) => {
+        // Merge dynamic services into the Services dropdown
+        if (item.label === "Services" && item.subItems) {
+          const filtered = [...item.subItems, ...dynamicServices].filter(
+            (child) =>
+              serviceChildFlags[child.label] === undefined ||
+              serviceChildFlags[child.label],
+          );
+          return { ...item, subItems: filtered };
+        }
+        return item;
+      });
+
+    return items;
+  }, [dynamicServices, ff.enableSchemes, ff.enableClassifieds, ff.enableBusTimings, ff.enableHelplines]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -125,32 +154,23 @@ export function Header() {
       {/* ═══ Main Header ═══ */}
       <header
         className={cn(
-          "fixed left-0 right-0 z-40 bg-white dark:bg-gray-900 shadow-md transition-all duration-300",
+          "fixed left-0 right-0 z-40 transition-all duration-300",
           scrolled
-            ? "top-9 backdrop-blur-sm bg-white/95 dark:bg-gray-900/95"
-            : "top-9",
+            ? "top-9 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-b border-slate-200/60 shadow-sm"
+            : "top-9 bg-white dark:bg-gray-900 shadow-md",
         )}
         role="banner"
       >
         <div className="max-w-[90rem] mx-auto px-4">
-          <div className="flex items-center h-12">
+          <div className="flex items-center justify-between h-16">
             {/* ── Logo ── */}
-            <Link
-              href="/"
-              className="flex flex-col items-start shrink-0 mr-6"
-              aria-label="Kilpennathur.com Home"
-            >
-              <span className="text-lg font-bold text-gray-900 dark:text-white leading-none">
-                Kilpennathur.com
-              </span>
-              <span className="text-[10px] text-gray-400 dark:text-gray-500 hidden sm:block leading-none mt-0.5">
-                கீழ்பென்னாத்தூர்
-              </span>
-            </Link>
+            <div className="mr-8 flex-shrink-0">
+              <Logo />
+            </div>
 
             {/* ── Desktop Navigation ── */}
             <nav
-              className="hidden xl:flex items-center flex-1 min-w-0"
+              className="hidden xl:flex items-center space-x-1"
               aria-label="Main navigation"
             >
               {navItems.map((item) => (
@@ -167,10 +187,10 @@ export function Header() {
                       <button
                         type="button"
                         className={cn(
-                          "inline-flex items-center gap-0.5 whitespace-nowrap px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors",
+                          "inline-flex items-center gap-0.5 whitespace-nowrap px-4 py-2 rounded-md text-[15px] font-medium transition-colors hover:bg-slate-100/50 dark:hover:bg-slate-800/50",
                           isActive(item.href)
                             ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/50"
-                            : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800",
+                            : "text-gray-700 dark:text-gray-300",
                         )}
                         aria-expanded={openDropdown === item.label}
                         aria-haspopup="true"
@@ -201,15 +221,15 @@ export function Header() {
                       </div>
                     </>
                   ) : (
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "inline-flex whitespace-nowrap px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors",
-                        isActive(item.href)
-                          ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/50"
-                          : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800",
-                      )}
-                    >
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "inline-flex whitespace-nowrap px-4 py-2 rounded-md text-[15px] font-medium transition-colors hover:bg-slate-100/50 dark:hover:bg-slate-800/50",
+                          isActive(item.href)
+                            ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/50"
+                            : "text-gray-700 dark:text-gray-300",
+                        )}
+                      >
                       {item.label}
                     </Link>
                   )}
