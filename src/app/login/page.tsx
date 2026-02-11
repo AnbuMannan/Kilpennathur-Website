@@ -24,15 +24,18 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
+        console.error("Login error result:", result.error);
         setError("Invalid email or password");
         setLoading(false);
         return;
       }
 
       if (result?.ok) {
+        console.log("Login successful, redirecting...");
         router.push("/admin");
       }
     } catch (err) {
+      console.error("Login catch error:", err);
       setError("Invalid email or password");
       setLoading(false);
     }

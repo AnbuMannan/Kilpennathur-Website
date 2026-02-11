@@ -4,7 +4,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { NewsCard } from "@/components/frontend/NewsCard";
-import { ShareBar } from "@/components/frontend/ShareBar";
+import { ShareButtons } from "@/components/frontend/ShareButtons";
+import { NewsHero } from "@/components/frontend/NewsHero";
+import RelatedPosts from "@/components/frontend/RelatedPosts";
+import CategoriesWidget from "@/components/frontend/CategoriesWidget";
 import { NewsViewTracker } from "@/components/frontend/NewsViewTracker";
 import Breadcrumbs from "@/components/frontend/Breadcrumbs";
 import { estimateReadingTime } from "@/lib/utils";
@@ -106,26 +109,42 @@ export default async function NewsDetailPage({ params }: Props) {
         status: "published",
       },
       orderBy: { publishedAt: "desc" },
-      take: 3,
+      take: 5,
       include: { author: true },
     }),
     prisma.news.findMany({
       where: { status: "published" },
       orderBy: { publishedAt: "desc" },
       take: 5,
-      select: { slug: true, title: true },
+      select: { id: true, slug: true, title: true, image: true, publishedAt: true, views: true },
     }),
     prisma.news.findMany({
       where: { status: "published" },
       orderBy: { views: "desc" },
       take: 5,
-      select: { slug: true, title: true },
+      select: { id: true, slug: true, title: true, image: true, publishedAt: true, views: true },
     }),
     prisma.category.findMany({
       where: { type: "news" },
       orderBy: { name: "asc" },
     }),
   ]);
+
+  // Manually fetch counts since there's no formal relation in schema
+  const categoriesWithCounts = await Promise.all(
+    categories.map(async (cat) => {
+      const count = await prisma.news.count({
+        where: {
+          category: cat.name, // The News model uses the category name string
+          status: "published",
+        },
+      });
+      return {
+        ...cat,
+        _count: { news: count },
+      };
+    })
+  );
 
   const tags = news.tags ? news.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
   const baseUrl = process.env.NEXTAUTH_URL ?? "https://kilpennathur.com";
@@ -162,7 +181,7 @@ export default async function NewsDetailPage({ params }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <article className="min-h-screen bg-white dark:bg-gray-950">
       <NewsViewTracker slug={news.slug} />
 
       {/* Structured Data for SEO */}
@@ -171,115 +190,64 @@ export default async function NewsDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <div className="container max-w-7xl mx-auto px-4 py-8">
-        {/* Back button */}
-        <Link
-          href="/news"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to News
-        </Link>
+      {/* Cinematic Hero */}
+      <NewsHero news={news} />
 
-        <Breadcrumbs
-          items={[
-            { label: "News", href: "/news" },
-            { label: truncate(news.title, 40) },
-          ]}
-        />
+      <div className="container max-w-7xl mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Sticky Share (Left - 1 Col) */}
+          <div className="hidden lg:block lg:col-span-1">
+            <div className="sticky top-24">
+              <ShareButtons url={shareUrl} title={news.title} newsId={news.id} />
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-          {/* Main content */}
-          <main className="lg:col-span-3 max-w-4xl">
-            <article>
-              <header className="mb-6">
-                <span className="inline-block px-2.5 py-0.5 rounded text-sm font-medium bg-primary text-primary-foreground mb-2">
-                  {news.category}
-                </span>
-                <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                  {news.title}
-                </h1>
-                {news.titleTamil && (
-                  <p className="text-2xl text-gray-600 mb-4">{news.titleTamil}</p>
-                )}
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 shrink-0" aria-hidden />
-                    {formatDate(news.publishedAt)}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <User className="w-4 h-4 shrink-0" aria-hidden />
-                    {news.author.name}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Eye className="w-4 h-4 shrink-0" aria-hidden />
-                    {news.views} views
-                  </span>
-                  <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
-                    <Clock className="w-4 h-4 shrink-0" aria-hidden />
-                    {estimateReadingTime(news.content)}
-                  </span>
-                </div>
-                <div className="h-px bg-gray-200" aria-hidden />
-              </header>
-
-              {news.image && (
-                <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted mb-8">
-                  <Image
-                    src={news.image}
-                    alt={news.title}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 800px"
-                    className="object-cover"
-                    priority
-                  />
-                </div>
-              )}
-
-              <div
-                className="prose prose-lg prose-neutral max-w-none mb-8"
-                dangerouslySetInnerHTML={{ __html: formatContent(news.content) }}
+          {/* Main Content (Center - 7 Cols) */}
+          <main className="lg:col-span-7">
+            {/* Breadcrumbs inside content area for desktop, or top of mobile */}
+            <div className="mb-8">
+              <Breadcrumbs
+                items={[
+                  { label: "News", href: "/news" },
+                  { label: truncate(news.title, 30) },
+                ]}
               />
+            </div>
+
+            <div className="prose prose-lg prose-slate dark:prose-invert max-w-none">
+              <div dangerouslySetInnerHTML={{ __html: formatContent(news.content) }} />
 
               {news.contentTamil && (
-                <>
-                  <div className="h-px bg-gray-200 my-8" aria-hidden />
-                  <div
-                    className="prose prose-lg prose-neutral max-w-none mb-8"
-                    dangerouslySetInnerHTML={{ __html: formatContent(news.contentTamil) }}
-                  />
-                </>
+                <div className="mt-12 pt-12 border-t border-border">
+                  <div dangerouslySetInnerHTML={{ __html: formatContent(news.contentTamil) }} />
+                </div>
               )}
+            </div>
 
+            {/* Mobile Share Buttons */}
+            <div className="mt-12 lg:hidden">
+              <p className="text-sm font-medium text-gray-500 mb-4">Share this article</p>
+              <ShareButtons url={shareUrl} title={news.title} newsId={news.id} />
+            </div>
+
+            {/* Tags and Reference */}
+            <div className="mt-12 space-y-6 pt-8 border-t border-border">
               {tags.length > 0 && (
-                <div className="mb-8">
-                  <span className="text-sm font-medium text-gray-700 mr-2">Tags:</span>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="inline-flex px-2.5 py-0.5 rounded text-sm bg-gray-100 text-gray-700"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm font-medium"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
                 </div>
               )}
 
-              <div className="mb-8">
-                <p className="text-sm font-medium text-gray-700 mb-2">Share this article:</p>
-                <ShareBar
-                  url={shareUrl}
-                  title={news.title}
-                  whatsappLink={news.whatsappLink}
-                  newsId={news.id}
-                />
-              </div>
-
               {news.referenceUrl && (
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-600">Source:</span>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Source:</span>
                   <a
                     href={news.referenceUrl}
                     target="_blank"
@@ -291,87 +259,27 @@ export default async function NewsDetailPage({ params }: Props) {
                   </a>
                 </div>
               )}
-            </article>
+            </div>
+
+            {/* Related News Section below content */}
+            <div className="mt-16">
+              <h3 className="text-2xl font-bold mb-8">Related News</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {relatedNews.map((related) => (
+                  <NewsCard key={related.id} news={related as any} variant="default" />
+                ))}
+              </div>
+            </div>
           </main>
 
-          {/* Sidebar */}
-          <aside className="lg:col-span-1 space-y-8">
-            <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Posts</h2>
-              <ul className="space-y-2">
-                {recentPosts.map((post) => (
-                  <li key={post.slug}>
-                    <Link
-                      href={`/news/${post.slug}`}
-                      className="text-sm text-gray-600 hover:text-blue-600 line-clamp-2"
-                    >
-                      {post.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Popular Posts</h2>
-              <ul className="space-y-2">
-                {popularPosts.map((post) => (
-                  <li key={post.slug}>
-                    <Link
-                      href={`/news/${post.slug}`}
-                      className="text-sm text-gray-600 hover:text-blue-600 line-clamp-2"
-                    >
-                      {post.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Categories</h2>
-              <ul className="space-y-2">
-                {categories.map((c) => (
-                  <li key={c.id}>
-                    <Link
-                      href={`/news?category=${c.slug}`}
-                      className="text-sm text-gray-600 hover:text-blue-600"
-                    >
-                      {c.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
+          {/* Sidebar (Right - 4 Cols) */}
+          <aside className="lg:col-span-4 space-y-12">
+            <RelatedPosts posts={recentPosts as any} title="Recent Posts" />
+            <RelatedPosts posts={popularPosts as any} title="Popular Posts" />
+            <CategoriesWidget categories={categoriesWithCounts as any} />
           </aside>
         </div>
-
-        {/* Related News */}
-        {relatedNews.length > 0 && (
-          <section className="mt-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Related News</h2>
-            <p className="text-gray-600 mb-8">தொடர்புடைய செய்திகள்</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {relatedNews.map((item) => (
-                <NewsCard
-                  key={item.id}
-                  news={{
-                    id: item.id,
-                    title: item.title,
-                    titleTamil: item.titleTamil,
-                    slug: item.slug,
-                    excerpt: item.excerpt,
-                    content: item.content,
-                    image: item.image,
-                    category: item.category,
-                    publishedAt: item.publishedAt,
-                    views: item.views,
-                    author: { name: item.author.name },
-                  }}
-                />
-              ))}
-            </div>
-          </section>
-        )}
       </div>
-    </div>
+    </article>
   );
 }

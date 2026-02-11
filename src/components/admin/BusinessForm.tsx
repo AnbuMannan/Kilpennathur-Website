@@ -9,9 +9,9 @@ import type {
   CreateBusinessState,
   UpdateBusinessState,
 } from "@/app/admin/business/actions";
-import { uploadImage } from "@/lib/uploadImage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import { AdminFormLayout } from "./AdminFormLayout";
 import { FormPreviewCard } from "./FormPreviewCard";
 
@@ -72,38 +72,12 @@ export function BusinessForm(props: BusinessFormProps) {
   });
   const [imagePreview, setImagePreview] = useState<string>(biz?.image ?? "");
   const [imageUrl, setImageUrl] = useState<string>(biz?.image ?? "");
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string>("");
 
   useEffect(() => {
     if (state?.error) {
       toast.error(state.error);
     }
   }, [state?.error]);
-
-  /* Image upload handler */
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Please select an image file");
-      return;
-    }
-    setImagePreview(URL.createObjectURL(file));
-    setUploadError("");
-    setUploading(true);
-    try {
-      const url = await uploadImage(file, "kilpennathur_data", "business-images");
-      setImageUrl(url);
-    } catch (error) {
-      setUploadError(
-        error instanceof Error ? error.message : "Failed to upload image",
-      );
-      setImageUrl(biz?.image ?? "");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const cat = categories.find((c) => c.id === e.target.value);
@@ -335,38 +309,28 @@ export function BusinessForm(props: BusinessFormProps) {
 
           <div>
             <label htmlFor="image" className="mb-1 block text-sm font-medium">
-              Image
+              Business Cover/Logo
             </label>
-            <input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              disabled={uploading}
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-muted file:px-3 file:py-1 file:text-sm"
+            <ImageUpload
+              module="business"
+              label="Business Cover/Logo"
+              value={imageUrl}
+              onChange={(url) => {
+                setImageUrl(url);
+                setImagePreview(url);
+              }}
+              onRemove={() => {
+                setImageUrl("");
+                setImagePreview("");
+              }}
             />
-            {uploading && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                Uploading...
-              </p>
-            )}
-            {uploadError && (
-              <p className="mt-1 text-sm text-destructive">{uploadError}</p>
-            )}
-            {imagePreview && !uploadError && (
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="mt-2 h-32 w-auto rounded-md border object-cover"
-              />
-            )}
             <input type="hidden" name="imageUrl" value={imageUrl} />
           </div>
         </fieldset>
 
         {/* ──────────── Actions ──────────── */}
         <div className="flex gap-3 pt-4">
-          <Button type="submit" disabled={uploading}>
+          <Button type="submit">
             {isEdit ? "Update Business" : "Create Business"}
           </Button>
           <Button type="button" variant="outline" asChild>

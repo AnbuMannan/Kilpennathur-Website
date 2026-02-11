@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Settings, Sliders, Globe, Search as SearchIcon, Wrench } from "lucide-react";
+import { Save, Settings, Sliders, Globe, Search as SearchIcon, Wrench, ShieldCheck, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { updateUserPassword } from "./actions";
 
 interface Setting {
   id: string;

@@ -9,6 +9,7 @@ import type { CreateVillageState, UpdateVillageState } from "@/app/admin/village
 import { generateSlug } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import { AdminFormLayout } from "./AdminFormLayout";
 import { FormPreviewCard } from "./FormPreviewCard";
 
@@ -55,6 +56,8 @@ export function VillageForm(props: VillageFormProps) {
   const [previewNameTamil, setPreviewNameTamil] = useState(village?.nameTamil ?? "");
   const [previewPopulation, setPreviewPopulation] = useState(village?.population?.toString() ?? "");
   const [previewPresident, setPreviewPresident] = useState(village?.presidentName ?? "");
+  const [presidentImage, setPresidentImage] = useState(village?.presidentImage ?? "");
+  const [coverImage, setCoverImage] = useState(""); // Assuming coverImage is needed as per user instructions
 
   useEffect(() => {
     if (state?.error) {
@@ -211,6 +214,20 @@ export function VillageForm(props: VillageFormProps) {
             placeholder="Optional village description..."
           />
         </div>
+
+        <div>
+          <label htmlFor="image" className="mb-1 block text-sm font-medium">
+            Village Cover Image
+          </label>
+          <ImageUpload
+            module="villages"
+            label="Village Cover Image"
+            value={coverImage}
+            onChange={(url) => setCoverImage(url)}
+            onRemove={() => setCoverImage("")}
+          />
+          <input type="hidden" name="image" value={coverImage} />
+        </div>
       </fieldset>
 
       {/* ──────────── President Information ──────────── */}
@@ -251,19 +268,16 @@ export function VillageForm(props: VillageFormProps) {
 
         <div>
           <label htmlFor="presidentImage" className="mb-1 block text-sm font-medium">
-            President Photo URL
+            President Photo
           </label>
-          <Input
-            id="presidentImage"
-            name="presidentImage"
-            type="url"
-            defaultValue={village?.presidentImage ?? ""}
-            placeholder="https://..."
-            className="w-full"
+          <ImageUpload
+            module="villages"
+            label="President Photo"
+            value={presidentImage}
+            onChange={(url) => setPresidentImage(url)}
+            onRemove={() => setPresidentImage("")}
           />
-          <p className="mt-1 text-xs text-muted-foreground">
-            Direct URL to the president&apos;s photo (upload via Media first).
-          </p>
+          <input type="hidden" name="presidentImage" value={presidentImage} />
         </div>
       </fieldset>
 

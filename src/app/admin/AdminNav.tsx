@@ -19,6 +19,7 @@ import {
   Bus,
   ShieldCheck,
   Settings,
+  User,
 } from "lucide-react";
 import { canAccessSection } from "@/lib/adminRoles";
 import type { AdminRole } from "@/lib/adminRoles";
@@ -32,6 +33,7 @@ interface AdminFeatureFlags {
 
 const navLinks: { href: string; label: string; icon: typeof LayoutDashboard; role: AdminRole; flag?: keyof AdminFeatureFlags }[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, role: "CUSTOMER" },
+  { href: "/admin/profile", label: "My Profile", icon: User, role: "CUSTOMER" },
   { href: "/admin/news", label: "News", icon: Newspaper, role: "CUSTOMER" },
   { href: "/admin/events", label: "Events", icon: Calendar, role: "CUSTOMER" },
   { href: "/admin/jobs", label: "Jobs", icon: Briefcase, role: "CUSTOMER" },

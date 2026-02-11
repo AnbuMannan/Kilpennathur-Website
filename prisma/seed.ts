@@ -11,35 +11,33 @@ async function main() {
   try {
     console.log("🌱 Starting database seeding...");
 
-    // Hash password for admin user
-    const hashedPassword = await bcrypt.hash("Admin@123", 10);
-    const hashedPassword2 = await bcrypt.hash("Vikram@123", 10);
-
-    // Create admin user
-    const admin = await prisma.user.upsert({
-      where: { email: "admin@kilpennathur.com" },
-      update: { role: "ADMIN" },
-      create: {
-        email: "admin@kilpennathur.com",
-        password: hashedPassword,
-        name: "Admin User",
-        role: "ADMIN",
-      },
+    // Hash passwords 
+    const adminPassword = await bcrypt.hash("Admin@123", 10); 
+    const vikramPassword = await bcrypt.hash("Vikram@123", 10); 
+    
+    // Upsert Admin 
+    await prisma.user.upsert({ 
+      where: { email: "admin@kilpennathur.com" }, 
+      update: { password: adminPassword, role: "ADMIN" }, 
+      create: { 
+        email: "admin@kilpennathur.com", 
+        password: adminPassword, 
+        name: "Admin User", 
+        role: "ADMIN", 
+      }, 
+    }); 
+ 
+    // Upsert Customer (Vikram) 
+    await prisma.user.upsert({ 
+      where: { email: "vikram@kilpennathur.com" }, 
+      update: { password: vikramPassword, role: "CUSTOMER" }, 
+      create: { 
+        email: "vikram@kilpennathur.com", 
+        password: vikramPassword, 
+        name: "Vikram", 
+        role: "CUSTOMER", 
+      }, 
     });
-    console.log("✅ Admin user created:", admin.email);
-
-    // Create customer user
-    const customer = await prisma.user.upsert({
-      where: { email: "vikram@kilpennathur.com" },
-      update: { role: "CUSTOMER" },
-      create: {
-        email: "vikram@kilpennathur.com",
-        password: hashedPassword2, // Using same password for convenience
-        name: "Vikram",
-        role: "CUSTOMER",
-      },
-    });
-    console.log("✅ Customer user created:", customer.email);
 
     // Create NEWS categories
     const newsCategories = [

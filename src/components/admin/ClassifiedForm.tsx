@@ -12,6 +12,7 @@ import type { ClassifiedActionState } from "@/app/admin/classifieds/actions";
 import { generateSlug } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import { AdminFormLayout } from "./AdminFormLayout";
 import { FormPreviewCard } from "./FormPreviewCard";
 
@@ -115,6 +116,7 @@ export function ClassifiedForm(props: ClassifiedFormProps) {
   const [previewTitle, setPreviewTitle] = useState(item?.title ?? "");
   const [previewPrice, setPreviewPrice] = useState(item?.price?.toString() ?? "");
   const [previewStatus, setPreviewStatus] = useState(item?.status ?? "draft");
+  const [images, setImages] = useState(item?.images ?? "");
 
   const categories = CATEGORIES_BY_TYPE[selectedType] ?? [];
 
@@ -177,6 +179,7 @@ export function ClassifiedForm(props: ClassifiedFormProps) {
             { label: "Type", value: selectedType },
             { label: "Price", value: previewPrice ? `₹${Number(previewPrice).toLocaleString("en-IN")}` : "" },
           ]}
+          image={images.split(",")[0]}
         />
       }
     >
@@ -441,21 +444,13 @@ export function ClassifiedForm(props: ClassifiedFormProps) {
         </legend>
 
         <div>
-          <label htmlFor="images" className="mb-1 block text-sm font-medium">
-            Image URLs
-          </label>
-          <textarea
-            id="images"
-            name="images"
-            rows={2}
-            defaultValue={item?.images ?? ""}
-            className={textareaCls}
-            placeholder="Paste image URLs, separated by commas"
+          <ImageUpload
+            module="classifieds"
+            value={images.split(",")[0] || ""}
+            onChange={(url) => setImages(url)}
+            onRemove={() => setImages("")}
           />
-          <p className="mt-1 text-xs text-muted-foreground">
-            Comma-separated image URLs. Upload via Media first, then paste
-            URLs here.
-          </p>
+          <input type="hidden" name="images" value={images} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

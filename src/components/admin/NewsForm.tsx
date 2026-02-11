@@ -6,10 +6,10 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { createNews, updateNews } from "@/app/admin/news/actions";
 import type { CreateNewsState, UpdateNewsState } from "@/app/admin/news/actions";
-import { uploadImage } from "@/lib/uploadImage";
 import { generateSlug } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import { AdminFormLayout } from "./AdminFormLayout";
 import { FormPreviewCard } from "./FormPreviewCard";
 
@@ -82,8 +82,6 @@ export function NewsForm(props: NewsFormProps) {
   const [previewStatus, setPreviewStatus] = useState(news?.status ?? "draft");
   const [imagePreview, setImagePreview] = useState<string>(news?.image ?? "");
   const [imageUrl, setImageUrl] = useState<string>(news?.image ?? "");
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string>("");
   const [slug, setSlug] = useState(news?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(false);
 
@@ -92,30 +90,6 @@ export function NewsForm(props: NewsFormProps) {
       toast.error(state.error);
     }
   }, [state?.error]);
-
-  /* Image upload handler */
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Please select an image file");
-      return;
-    }
-    setImagePreview(URL.createObjectURL(file));
-    setUploadError("");
-    setUploading(true);
-    try {
-      const url = await uploadImage(file, "kilpennathur_data", "news-images");
-      setImageUrl(url);
-    } catch (error) {
-      setUploadError(
-        error instanceof Error ? error.message : "Failed to upload image",
-      );
-      setImageUrl(news?.image ?? "");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPreviewTitle(e.target.value);
@@ -263,29 +237,18 @@ export function NewsForm(props: NewsFormProps) {
             <label htmlFor="image" className="mb-1 block text-sm font-medium">
               Image
             </label>
-            <input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              disabled={uploading}
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-muted file:px-3 file:py-1 file:text-sm"
+            <ImageUpload
+              module="news"
+              value={imageUrl}
+              onChange={(url) => {
+                setImageUrl(url);
+                setImagePreview(url);
+              }}
+              onRemove={() => {
+                setImageUrl("");
+                setImagePreview("");
+              }}
             />
-            {uploading && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                Uploading...
-              </p>
-            )}
-            {uploadError && (
-              <p className="mt-1 text-sm text-destructive">{uploadError}</p>
-            )}
-            {imagePreview && !uploadError && (
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="mt-2 h-32 w-auto rounded-md border object-cover"
-              />
-            )}
             <input type="hidden" name="imageUrl" value={imageUrl} />
           </div>
 
@@ -476,7 +439,7 @@ export function NewsForm(props: NewsFormProps) {
 
         {/* ──────────── Actions ──────────── */}
         <div className="flex gap-3 pt-4">
-          <Button type="submit" disabled={uploading}>
+          <Button type="submit">
             {isEdit ? "Update News" : "Create News"}
           </Button>
           <Button type="button" variant="outline" asChild>

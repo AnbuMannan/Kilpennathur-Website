@@ -44,8 +44,20 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
 
   if (slides.length === 0) {
     return (
-      <div className="relative h-[500px] bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center">
-        <div className="text-center text-white px-4">
+      <div className="relative h-[500px] md:h-[600px] flex items-center justify-center text-center px-4 overflow-hidden group">
+        {/* 1. Background Image */}
+        <Image
+          src="/images/hero-bg.jpg" // Make sure this image exists in public/images/
+          alt="Kilpennathur scenic view"
+          fill
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
+          priority // Loads image immediately for better performance
+        />
+        {/* 2. Dark Overlay (Crucial for text readability) */}
+        <div className="absolute inset-0 bg-black/60 z-0" />
+
+        {/* 3. Main Content (kept relative to sit on top) */}
+        <div className="relative z-10 text-center text-white px-4 max-w-4xl space-y-4">
           <h1
             className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4"
             style={{ textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
@@ -76,7 +88,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
               src={slide.image}
               alt={slide.title}
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
               priority={index === 0}
               sizes="100vw"
             />
@@ -84,9 +96,9 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-800" />
           )}
 
-          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-black/60 z-0" />
 
-          <div className="absolute inset-0 flex items-center">
+          <div className="absolute inset-0 flex items-center z-10">
             <div className="max-w-7xl mx-auto px-4 md:px-6 w-full">
               <div className="max-w-2xl space-y-4">
                 <h2

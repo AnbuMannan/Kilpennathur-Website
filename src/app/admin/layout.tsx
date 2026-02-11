@@ -3,7 +3,6 @@ import { auth } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { LogoutButton } from "./LogoutButton";
 import { AdminNav } from "./AdminNav";
-import { AdminSettingsLink } from "./AdminSettingsLink";
 import { AdminCommandSearch } from "@/components/admin/AdminCommandSearch";
 
 export default async function AdminLayout({
@@ -18,7 +17,7 @@ export default async function AdminLayout({
   }
 
   const userRole = (session.user as { role?: string })?.role;
-  if (userRole !== "admin") {
+  if (userRole !== "ADMIN" && userRole !== "CUSTOMER") {
     redirect("/login");
   }
 
@@ -56,7 +55,6 @@ export default async function AdminLayout({
         </div>
         <AdminNav featureFlags={featureFlags} />
         <div className="mt-auto pt-4 flex flex-col gap-1">
-          <AdminSettingsLink />
           <LogoutButton />
         </div>
       </aside>

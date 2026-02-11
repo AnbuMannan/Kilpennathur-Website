@@ -4,9 +4,9 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { createEvent, updateEvent } from "@/app/admin/events/actions";
 import type { CreateEventState, UpdateEventState } from "@/app/admin/events/actions";
-import { uploadImage } from "@/lib/uploadImage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import { AdminFormLayout } from "./AdminFormLayout";
 import { FormPreviewCard } from "./FormPreviewCard";
 
@@ -45,37 +45,8 @@ export function EventForm(props: EventFormProps) {
 
   const [imagePreview, setImagePreview] = useState<string>(event?.image ?? "");
   const [imageUrl, setImageUrl] = useState<string>(event?.image ?? "");
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string>("");
   const [previewTitle, setPreviewTitle] = useState(event?.title ?? "");
   const [previewTitleTamil, setPreviewTitleTamil] = useState(event?.titleTamil ?? "");
-
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Please select an image file");
-      return;
-    }
-
-    setImagePreview(URL.createObjectURL(file));
-    setUploadError("");
-    setUploading(true);
-    try {
-      const url = await uploadImage(file, "kilpennathur_data", "event-images");
-      setImageUrl(url);
-      setUploadError("");
-    } catch (error) {
-      console.error("Image upload failed:", error);
-      setUploadError(
-        error instanceof Error ? error.message : "Failed to upload image"
-      );
-      setImageUrl(event?.image ?? "");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const defaultDate = event?.date
     ? toDateTimeLocal(new Date(event.date))
@@ -185,30 +156,18 @@ export function EventForm(props: EventFormProps) {
         </legend>
 
         <div>
-          <label htmlFor="image" className="mb-1 block text-sm font-medium">
-            Image
-          </label>
-          <input
-            id="image"
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            disabled={uploading}
-            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-muted file:px-3 file:py-1 file:text-sm"
+          <ImageUpload
+            module="events"
+            value={imageUrl}
+            onChange={(url) => {
+              setImageUrl(url);
+              setImagePreview(url);
+            }}
+            onRemove={() => {
+              setImageUrl("");
+              setImagePreview("");
+            }}
           />
-          {uploading && (
-            <p className="mt-1 text-sm text-muted-foreground">Uploading image...</p>
-          )}
-          {uploadError && (
-            <p className="mt-1 text-sm text-destructive">{uploadError}</p>
-          )}
-          {imagePreview && !uploadError && (
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="mt-2 h-32 w-auto rounded-md border border-border object-cover"
-            />
-          )}
           <input type="hidden" name="imageUrl" value={imageUrl} />
         </div>
       </fieldset>

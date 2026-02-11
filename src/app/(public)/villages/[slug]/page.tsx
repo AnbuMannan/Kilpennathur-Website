@@ -195,7 +195,7 @@ export default async function VillageDetailPage({ params }: Props) {
                 <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
                   <CardHeader className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                     <CardTitle className="flex items-center gap-2">
-                      <Info className="w-5 h-5 text-blue-600" />
+                      &nbsp;&nbsp;&nbsp;<Info className="w-5 h-5 text-blue-600" />
                       About {village.name}
                     </CardTitle>
                   </CardHeader>
@@ -311,7 +311,7 @@ export default async function VillageDetailPage({ params }: Props) {
             <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white dark:bg-slate-900 sticky top-24">
               <div className="h-2 bg-blue-600 w-full" />
               <CardHeader>
-                <CardTitle className="text-lg">Administration</CardTitle>
+                <CardTitle className="text-lg">&nbsp;Administration</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">

@@ -229,7 +229,7 @@ export default async function HomePage() {
       titleTamil: "கீழ்பென்னாத்தூர் வரவேற்கிறது",
       description:
         "Your trusted source for local news, business directory, events, and community information. Stay connected with Kilpennathur and surrounding villages.",
-      image: "",
+      image: "/images/hero-bg.jpg",
       link: "/news",
     },
     ...featuredNews.map((news) => ({

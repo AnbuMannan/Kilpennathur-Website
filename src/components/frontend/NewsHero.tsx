@@ -1,58 +1,87 @@
+"use client";
+
 import Image from "next/image";
-import { Newspaper } from "lucide-react";
+import { Calendar, User, Clock, Eye } from "lucide-react";
+import { estimateReadingTime } from "@/lib/utils";
 
-export function NewsHero() {
+interface NewsHeroProps {
+  news: {
+    title: string;
+    titleTamil?: string | null;
+    image?: string | null;
+    category: string;
+    publishedAt: Date | null;
+    author: { name: string };
+    views: number;
+    content: string;
+  };
+}
+
+function formatDate(date: Date | null | undefined): string {
+  if (!date) return "—";
+  return new Intl.DateTimeFormat("en-IN", { dateStyle: "long" }).format(new Date(date));
+}
+
+export function NewsHero({ news }: NewsHeroProps) {
   return (
-    <div className="relative h-64 md:h-80 mb-12 rounded-2xl overflow-hidden">
-      {/* Background: gradient fallback + pattern */}
-      <div className="absolute inset-0">
-        <div
-          className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800"
-          aria-hidden
-        />
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
-            backgroundSize: "30px 30px",
-          }}
-          aria-hidden
-        />
-      </div>
-      {/* Hero image */}
-      <Image
-        src="/images/news-hero.jpg"
-        alt=""
-        fill
-        className="object-cover"
-        priority
-        sizes="(max-width: 768px) 100vw, 1280px"
-      />
-
-      {/* Glossy overlay 50-60% - lets image show through */}
-      <div
-        className="absolute inset-0 bg-gradient-to-r from-blue-900/50 via-blue-800/55 to-blue-900/50 backdrop-blur-[1px]"
-        aria-hidden
-      />
-
-      {/* Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4">
-        <Newspaper className="w-12 h-12 mb-3 animate-pulse" aria-hidden />
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">News</h1>
-        <p className="text-xl md:text-2xl mb-2">செய்திகள்</p>
-        <p className="text-base md:text-lg text-blue-100 max-w-2xl text-center">
-          Latest updates and stories from Kilpennathur and surrounding villages.
-        </p>
+    <section className="relative h-[60vh] min-h-[400px] w-full overflow-hidden">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0 z-0">
+        {news.image ? (
+          <Image
+            src={news.image}
+            alt={news.title}
+            fill
+            priority
+            className="object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-slate-900" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
       </div>
 
-      {/* Decorative Elements */}
-      <div
-        className="absolute top-0 left-0 w-full h-full pointer-events-none"
-        aria-hidden
-      >
-        <div className="absolute top-10 right-10 w-32 h-32 bg-blue-400/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 left-10 w-40 h-40 bg-purple-400/20 rounded-full blur-3xl" />
+      {/* Content Area */}
+      <div className="container relative z-10 h-full mx-auto px-4 flex flex-col justify-end pb-12">
+        <div className="max-w-4xl space-y-6">
+          {/* Category Badge */}
+          <div className="inline-block px-4 py-1.5 rounded-full bg-blue-600 text-white text-sm font-semibold tracking-wider uppercase">
+            {news.category}
+          </div>
+
+          {/* Title and Tamil Title */}
+          <div className="space-y-4">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white leading-tight">
+              {news.title}
+            </h1>
+            {news.titleTamil && (
+              <p className="text-2xl md:text-3xl text-gray-300 font-medium leading-relaxed">
+                {news.titleTamil}
+              </p>
+            )}
+          </div>
+
+          {/* Meta Information */}
+          <div className="flex flex-wrap items-center gap-6 text-white/90 text-sm md:text-base border-t border-white/20 pt-6">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-blue-400" />
+              <span>{formatDate(news.publishedAt)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <User className="w-5 h-5 text-blue-400" />
+              <span>{news.author.name}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-blue-400" />
+              <span>{estimateReadingTime(news.content)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-blue-400" />
+              <span>{news.views} views</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

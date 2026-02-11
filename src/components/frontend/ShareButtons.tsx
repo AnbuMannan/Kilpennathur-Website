@@ -48,22 +48,14 @@ export function ShareButtons({ url, title, whatsappLink, newsId }: ShareButtonsP
 
   function shareOnWhatsApp() {
     trackShare(newsId, "whatsapp");
-    if (whatsappLink) {
-      window.open(whatsappLink, "_blank", "noopener,noreferrer");
-    } else {
-      window.open(
-        `https://wa.me/?text=${encodeURIComponent(title + " " + url)}`,
-        "_blank",
-        "noopener,noreferrer"
-      );
-    }
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(title)} - ${encodeURIComponent(url)}`;
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   }
 
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      // If using sonner: import { toast } from "sonner"; then toast.success("Link copied!");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
@@ -71,17 +63,17 @@ export function ShareButtons({ url, title, whatsappLink, newsId }: ShareButtonsP
   }
 
   const buttonBase =
-    "inline-flex items-center justify-center w-10 h-10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
+    "inline-flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2";
 
   return (
-    <div className="flex items-center gap-2" role="group" aria-label="Share">
+    <div className="flex lg:flex-col items-center gap-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-border" role="group" aria-label="Share">
       <button
         type="button"
         onClick={shareOnWhatsApp}
         className={`${buttonBase} bg-[#25d366] text-white hover:bg-[#20bd5a] focus:ring-[#25d366]`}
         aria-label="Share on WhatsApp"
       >
-        <MessageCircle className="w-5 h-5" />
+        <MessageCircle className="w-6 h-6" />
       </button>
       <button
         type="button"
@@ -89,27 +81,23 @@ export function ShareButtons({ url, title, whatsappLink, newsId }: ShareButtonsP
         className={`${buttonBase} bg-[#1877f2] text-white hover:bg-[#166fe5] focus:ring-[#1877f2]`}
         aria-label="Share on Facebook"
       >
-        <Facebook className="w-5 h-5" />
+        <Facebook className="w-6 h-6" />
       </button>
       <button
         type="button"
         onClick={shareOnTwitter}
-        className={`${buttonBase} bg-[#0ea5e9] text-white hover:bg-[#0284c7] focus:ring-[#0ea5e9]`}
+        className={`${buttonBase} bg-[#000000] text-white hover:bg-[#333333] focus:ring-[#000000]`}
         aria-label="Share on Twitter"
       >
-        <Twitter className="w-5 h-5" />
+        <Twitter className="w-6 h-6" />
       </button>
       <button
         type="button"
         onClick={copyLink}
-        className={`${buttonBase} bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-400`}
-        aria-label={copied ? "Copied" : "Copy link"}
+        className={`${buttonBase} bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-300`}
+        aria-label="Copy link"
       >
-        {copied ? (
-          <Check className="w-5 h-5 text-green-600" />
-        ) : (
-          <Link2 className="w-5 h-5" />
-        )}
+        {copied ? <Check className="w-6 h-6 text-green-600" /> : <Link2 className="w-6 h-6" />}
       </button>
     </div>
   );

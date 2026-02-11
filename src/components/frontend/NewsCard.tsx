@@ -15,7 +15,7 @@ export interface NewsCardProps {
     category: string;
     publishedAt?: Date | null;
     views: number;
-    author: {
+    author?: {
       name: string;
     };
   };
@@ -138,7 +138,7 @@ function DefaultCard({ news }: { news: NewsCardProps["news"] }) {
             )}
             <span className="inline-flex items-center gap-1 ml-auto">
               <User className="h-3 w-3 shrink-0" aria-hidden />
-              {news.author.name}
+              {news.author?.name || "Admin"}
             </span>
           </div>
         </div>
